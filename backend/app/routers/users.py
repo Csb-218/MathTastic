@@ -1,17 +1,8 @@
 from fastapi import APIRouter, HTTPException
-from app.models.user import User, UserRole
-from pydantic import BaseModel
-from typing import Optional
 from datetime import datetime
-from app.controllers.userControllers import get_users
+from app.models.user import User
+from app.schemas.user_schema import UserCreate
 
-
-# Create a Pydantic model for user creation
-class UserCreate(BaseModel):
-    name: str
-    email: str
-    password: str
-    role: UserRole
 
 router = APIRouter(
     prefix="/users",
@@ -20,10 +11,9 @@ router = APIRouter(
 )
 
 @router.get("/", response_model=list[User])
-async def getUser():
-    return await get_users()
-
-
+async def get_users():
+    users = await User.find_all().to_list()
+    return users
 
 @router.post("/", response_model=User)
 async def add_user(user: UserCreate):
