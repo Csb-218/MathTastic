@@ -7,18 +7,13 @@ from beanie import Link
 from typing import List
 from bson import ObjectId
 from bson.errors import InvalidId
+from app.utils.helpers import validate_object_id
 
 router = APIRouter(
     prefix="/games",
     tags=["games"],
     responses={404: {"description": "Not found"}},
 )
-
-def validate_object_id(id_str: str) -> ObjectId:
-    try:
-        return ObjectId(id_str)
-    except InvalidId:
-        raise HTTPException(status_code=400, detail="Invalid ID format")
 
 @router.get("/", response_model=List[GameResponse])
 async def get_games():
@@ -43,7 +38,7 @@ async def get_games():
 
 @router.get("/{game_id}", response_model=GameResponse)
 async def get_game(game_id: str = Path(..., description="The ID of the game to get")):
-    object_id = validate_object_id(game_id)
+    object_id = validate_object_id(game_id,"game_id")
     game = await Game.get(object_id)
     if not game:
         raise HTTPException(status_code=404, detail="Game not found")
@@ -62,7 +57,7 @@ async def get_game(game_id: str = Path(..., description="The ID of the game to g
 async def create_game(game_data: GameCreate):
     try:
         # Verify user exists
-        creator_id = validate_object_id(game_data.creator_id)
+        creator_id = validate_object_id(game_data.creator_id,"creator_id")
         creator = await User.get(creator_id)
         if not creator:
             raise HTTPException(status_code=404, detail="Creator not found")
@@ -107,7 +102,7 @@ async def update_game(
     game_id: str = Path(..., description="The ID of the game to update"),
     game_update: GameUpdate = None
 ):
-    object_id = validate_object_id(game_id)
+    object_id = validate_object_id(game_id,"game_id")
     game = await Game.get(object_id)
     if not game:
         raise HTTPException(status_code=404, detail="Game not found")
@@ -150,7 +145,7 @@ async def update_game(
 
 @router.delete("/{game_id}")
 async def delete_game(game_id: str):
-    game = await Game.get(game_id)
+    game = await Game.get(validate_object_id(game_id,"game_id"))
     if not game:
         raise HTTPException(status_code=404, detail="Game not found")
     
