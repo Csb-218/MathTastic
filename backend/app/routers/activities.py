@@ -4,6 +4,7 @@ from app.schemas.activity_schema import ActivityCreate, ActivityUpdate, Activity
 from typing import List
 from bson import ObjectId
 from bson.errors import InvalidId
+from app.utils.helpers import validate_object_id
 
 router = APIRouter(
     prefix="/activities",
@@ -11,12 +12,6 @@ router = APIRouter(
     responses={404: {"description": "Not found"}},
 )
 
-# Helper function to validate ObjectId
-def validate_object_id(id_str: str) -> ObjectId:
-    try:
-        return ObjectId(id_str)
-    except InvalidId:
-        raise HTTPException(status_code=400, detail="Invalid activity ID format")
 
 @router.get("/", response_model=List[ActivityResponse])
 async def get_activities():
@@ -45,8 +40,8 @@ async def get_activities():
 async def get_activity(
     activity_id: str = Path(..., description="The ID of the activity to get")
 ):
-    object_id = validate_object_id(activity_id)
-    activity = await Activity.get(object_id)
+
+    activity = await Activity.get(validate_object_id(activity_id,"activity_id"))
     if not activity:
         raise HTTPException(status_code=404, detail="Activity not found")
     return ActivityResponse(
@@ -91,8 +86,7 @@ async def update_activity(
     activity_update: ActivityUpdate = None
 ):
     try:
-        object_id = validate_object_id(activity_id)
-        activity = await Activity.get(object_id)
+        activity = await Activity.get(validate_object_id(activity_id,"activity_id"))
         if not activity:
             raise HTTPException(status_code=404, detail="Activity not found")
         
@@ -123,8 +117,7 @@ async def update_activity(
 async def delete_activity(
     activity_id: str = Path(..., description="The ID of the activity to delete")
 ):
-    object_id = validate_object_id(activity_id)
-    activity = await Activity.get(object_id)
+    activity = await Activity.get(validate_object_id(activity_id,"activity_id"))
     if not activity:
         raise HTTPException(status_code=404, detail="Activity not found")
     

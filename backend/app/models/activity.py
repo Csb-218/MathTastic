@@ -2,8 +2,6 @@ from beanie import Document,Link
 from typing import List, Optional
 from pydantic import Field
 
-from .game import Game
-
 class Activity(Document):
     level: int = Field(default=1, ge=1)
     target: int = Field(...)  # required field
@@ -14,10 +12,7 @@ class Activity(Document):
     points: int = Field(default=10, ge=0)
     success_feedback: str = Field(default="Great job!")
     failure_feedback: str = Field(default="Try again!")
-    game: Link[Game] = Field(
-        ...,
-        description="Reference to the parent game"
-    )
+
 
     class Settings:
         name = "activities"  # Collection name in MongoDB

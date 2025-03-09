@@ -7,10 +7,10 @@ from .user import User
 class Game(Document):
     title: constr(max_length=50) = Field(..., description="Game title, max 50 characters")
     creator: Link[User] = Field(..., description="Reference to creator user")
-    # activities: List[Link[Activity]] = Field(  # Changed to store Links
-    #     default_factory=list,
-    #     description="List of activity references"
-    # )
+    activities: List[Link[Activity]] = Field(  # Changed to store Links
+        default_factory=list,
+        description="List of activity references"
+    )
     target_range: List[int] = Field(
         default_factory=lambda: [0, 0],
         min_items=2,
