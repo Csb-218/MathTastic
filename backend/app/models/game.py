@@ -1,13 +1,13 @@
 from beanie import Document, Link
 from typing import List
 from pydantic import Field, constr
-from .activity import Activity
-from .user import User 
+from app.models.activity import Activity
+from app.models.user import User 
 
 class Game(Document):
     title: constr(max_length=50) = Field(..., description="Game title, max 50 characters")
     creator: Link[User] = Field(..., description="Reference to creator user")
-    activities: List[Link[Activity]] = Field(  # Changed to store Links
+    activities: List[Link[Activity]] = Field(
         default_factory=list,
         description="List of activity references"
     )
@@ -54,7 +54,8 @@ class Game(Document):
             total_points = 0
 
             for activity in self.activities:
-                print(1,activity)  # Fetch activity from reference
+                if not activity:
+                    continue
                 if activity.target is not None:
                     targets.append(activity.target)
                 if activity.time_limit is not None:
