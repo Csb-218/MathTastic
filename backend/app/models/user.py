@@ -1,5 +1,5 @@
 import uuid
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 from beanie import Document, Indexed
 from enum import Enum
 from datetime import datetime
@@ -13,9 +13,9 @@ class UserRole(str, Enum):
 class User(Document):
     name: str
     email: Indexed(str, unique=True)  # Indexed for faster queries and unique constraint
-    password: str
     role: UserRole
-    created_at: datetime = datetime.utcnow()
+    uid: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    created_at: datetime = Field(default_factory=datetime.utcnow)
     
     class Settings:
         name = "users"  # Collection name in MongoDB
