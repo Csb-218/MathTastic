@@ -1,9 +1,18 @@
+from pydantic import BaseModel, EmailStr
 from app.models.user import UserRole
-from pydantic import BaseModel
+from app.models.user import User
 
-# Create a Pydantic model for user creation
 class UserCreate(BaseModel):
     name: str
-    email: str
-    password: str
+    email: EmailStr  # Using EmailStr for better email validation
     role: UserRole
+    uid:str
+
+class UserLogin(BaseModel):
+    email: EmailStr
+    uid: str
+
+class LoginResponse(BaseModel):
+    user: User
+    access_token: str
+    token_type: str = "bearer"

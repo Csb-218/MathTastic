@@ -17,17 +17,17 @@ class ActivityCreate(ActivityBase):
 
 class ActivityUpdate(BaseModel):
     level: int = Field(ge=1, description="Level must be greater than or equal to 1")
-    target: int = Field(ge=0, description="Target must be non-negative")
-    addends: List[int] = Field(
+    target: Optional[int] = Field(ge=0, description="Target must be non-negative")
+    addends: Optional[List[int]] = Field(
         default_factory=list,
         description="List of numbers to be added"
     )
-    addends_size: int = Field(ge=1, description="Must have at least 1 addend")
-    time_limit: int = Field(ge=0, description="Time limit must be non-negative")
+    addends_size: Optional[int] = Field(ge=1, description="Must have at least 1 addend")
+    time_limit: Optional[int] = Field(ge=0, description="Time limit must be non-negative")
     hints: Optional[List[str]] = None
-    points: int = Field(ge=0, description="Points must be non-negative")
-    success_feedback: str = Field(min_length=1)
-    failure_feedback: str = Field(min_length=1)
+    points: Optional[int] = Field(ge=0, description="Points must be non-negative")
+    success_feedback: Optional[str] = Field(min_length=1)
+    failure_feedback: Optional[str] = Field(min_length=1)
 
     class Config:
         json_schema_extra = {
