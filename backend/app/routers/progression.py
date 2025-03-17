@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Path, Depends
 from typing import List
-from beanie import Document, Link
+from beanie import Link
 from app.models.progress import Progress
 from app.models.user import User
 from app.models.activity import Activity
