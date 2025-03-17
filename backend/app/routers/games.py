@@ -1,12 +1,9 @@
+from typing import List
 from fastapi import APIRouter, HTTPException, Path
 from app.models.game import Game
 from app.models.activity import Activity
 from app.models.user import User
 from app.schemas.game_schema import GameCreate, GameUpdate, GameResponse
-from beanie import Link
-from typing import List
-from bson import ObjectId
-from bson.errors import InvalidId
 from app.utils.helpers import validate_object_id
 
 router = APIRouter(
@@ -19,12 +16,13 @@ router = APIRouter(
 async def get_games():
     try:
         games = await Game.find_all(fetch_links=True).to_list()
+        print(games)
         return [
             GameResponse(
             id=str(game.id),
             title=game.title,
-            creator=str(game.creator.id),
-            activities=[(activity) for activity in game.activities],
+            creator= str(game.creator.id),
+            activities=list(game.activities),
             target_range=game.target_range,
             max_time_allowed=game.max_time_allowed,
             total_points=game.total_points,
@@ -38,55 +36,57 @@ async def get_games():
 
 @router.get("/{game_id}", response_model=GameResponse)
 async def get_game(game_id: str = Path(..., description="The ID of the game to get")):
-    object_id = validate_object_id(game_id,"game_id")
-    game = await Game.get(object_id)
+
+    game = await Game.get(str(validate_object_id(game_id,"game_id")),fetch_links=True)
+    print(game)
     if not game:
         raise HTTPException(status_code=404, detail="Game not found")
     
-    return GameResponse(
-        id=str(game.id),
-        title=game.title,
-        creator_id=str(game.creator.id),
-        activity_ids=[str(activity.id) for activity in game.activities],
-        target_range=game.target_range,
-        max_time_allowed=game.max_time_allowed,
-        total_points=game.total_points
-    )
+    return  GameResponse(
+            id=str(game.id),
+            title=game.title,
+            creator=str(game.creator.id),
+            activities=list(game.activities),
+            target_range=game.target_range,
+            max_time_allowed=game.max_time_allowed,
+            total_points=game.total_points,
+            template=game.template
+        )
 
 @router.post("/create", response_model=GameResponse)
-async def create_game(game_data: GameCreate):
+async def create_game(game_data: GameCreate) -> GameResponse:
     try:
-        # Verify user exists
-        creator_id = validate_object_id(game_data.creator_id,"creator_id")
-        creator = await User.get(creator_id)
+        # Verify user exists 
+        creator = await User.get(validate_object_id(game_data.creator_id, "creator_id"))
         if not creator:
             raise HTTPException(status_code=404, detail="Creator not found")
 
         # Create new game first
         new_game = Game(
             title=game_data.title,
-            creator=Link(creator_id, User),
+            creator=creator,
             template=game_data.template
         )
         await new_game.insert()
 
-        # Create activities with reference to the game
-        for activity_data in game_data.activities:
-            activity = Activity(
-                **activity_data.dict(),
-                game=Link(new_game.id, Game)
-            )
-            await activity.insert()
+        # Create activity references
+        activities = []
+        for activity_id in game_data.activity_ids:
+            activity_id = validate_object_id(activity_id, "activity_id")
+            activity = await Activity.get(activity_id)
+            if not activity:
+                raise HTTPException(status_code=404, detail=f"Activity with id {activity_id} not found")
+            activities.append(activity)
 
-        # Update game statistics
+        new_game.activities = activities
         await new_game.update_stats()
         await new_game.save()
 
         return GameResponse(
             id=str(new_game.id),
             title=new_game.title,
-            creator_id=str(new_game.creator.id),
-            activities=await Activity.find({"game.id": new_game.id}).to_list(),
+            creator=str(game_data.creator_id),
+            activities=[activity for activity in new_game.activities],
             target_range=new_game.target_range,
             max_time_allowed=new_game.max_time_allowed,
             total_points=new_game.total_points,
@@ -117,7 +117,7 @@ async def update_game(
         if game_update.activity_ids:
             activities = []
             for activity_id in game_update.activity_ids:
-                object_id = validate_object_id(activity_id)
+                object_id = validate_object_id(activity_id,"activity_id")
                 activity = await Activity.get(object_id)
                 if not activity:
                     raise HTTPException(
