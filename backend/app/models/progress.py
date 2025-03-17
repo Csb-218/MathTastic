@@ -1,10 +1,10 @@
 from beanie import Document, Link
 from typing import List,Optional
 from pydantic import Field
-from .user import User
-from .game import Game
-from .badge import Badge
-from .activity import Activity
+from app.models.user import User
+from app.models.game import Game
+from app.models.badge import Badge
+from app.models.activity import Activity
 
 class Progress(Document):
     student: Link[User] = Field(
@@ -80,7 +80,7 @@ class Progress(Document):
     async def create_progress(cls, student: User) -> 'Progress':
         """Creates a new progress record for a student."""
         progress = cls(
-            student=Link(student),
+            student=Link(student, User),
             games_completed=[],
             badges=[],
             points_earned=0
@@ -90,7 +90,7 @@ class Progress(Document):
 
     async def add_completed_game(self, game: Game) -> None:
         """Adds a completed game and updates points and badges."""
-        if Link(game) not in self.games_completed:
+        if Link(game, Game) not in self.games_completed:
             self.games_completed.append(Link(game, Game))
             await self.update_points()
             await self.save()
