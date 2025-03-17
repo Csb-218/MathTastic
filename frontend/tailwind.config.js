@@ -5,7 +5,11 @@ export default {
     "./src/**/*.{vue,js,ts,jsx,tsx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        'fredoka': ['Fredoka', 'sans-serif'],
+      },
+    },
   },
   plugins: [],
 }
