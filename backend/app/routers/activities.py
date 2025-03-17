@@ -39,11 +39,12 @@ async def get_activities():
 @router.get("/{activity_id}", response_model=ActivityResponse)
 async def get_activity(
     activity_id: str = Path(..., description="The ID of the activity to get")
-):
+) -> ActivityResponse :
 
     activity = await Activity.get(validate_object_id(activity_id,"activity_id"))
     if not activity:
         raise HTTPException(status_code=404, detail="Activity not found")
+    
     return ActivityResponse(
         id=str(activity.id),
         level=activity.level,
@@ -94,7 +95,7 @@ async def update_activity(
         if update_data:
             await activity.update({"$set": update_data})
             # Fetch the updated activity
-            activity = await Activity.get(object_id)
+            activity = await Activity.get(activity_id)
         
         # Convert the response to ActivityResponse format
         return ActivityResponse(
