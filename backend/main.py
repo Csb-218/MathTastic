@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware  # Add this import
 from motor.motor_asyncio import AsyncIOMotorClient
 from app.routers import users, activities, games , badges , progression
 from app.models.user import User
@@ -14,6 +15,15 @@ import os
 load_dotenv()
 
 app = FastAPI()
+
+# CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173","http://127.0.0.1:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # routes
 app.include_router(users.router)
@@ -44,7 +54,16 @@ async def startup_event():
 
 @app.get("/")
 async def root():
-    return {"message": "Hello World"}
+    return {"message": "Welcome To MathTastic!"}
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(
+        "main:app",
+        host="localhost",
+        port=8000,
+        reload=True
+    )
 
 
 
