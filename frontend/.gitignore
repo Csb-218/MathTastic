@@ -31,5 +31,5 @@ coverage
 
 test-results/
 playwright-report/
-
+# environment variables
 .env
