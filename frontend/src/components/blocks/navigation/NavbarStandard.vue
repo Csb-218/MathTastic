@@ -1,15 +1,15 @@
-<script lang="ts">
-export default {
-  name: 'NavBar'
-}
+<script setup lang="ts">
+import calculator_logo from "@/assets/icons/calculator_logo.png"
+
 </script>
 
 <template>
   <nav class="bg-white shadow-md fixed w-full top-0 z-50">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex justify-between h-16">
-        <div class="flex-shrink-0 flex items-center">
-          <h1 class="text-2xl sm:text-3xl font-bold text-amber-500">MathTastic</h1>
+    <div class="max-w-screen-2xl mx-auto px-2 sm:px-4 lg:px-6">
+      <div class="flex justify-between h-16 ">
+        <div class="flex-shrink-0 flex items-center gap-x-2">
+          <img :src="calculator_logo" alt="MathTastic" class="h-8 w-8 " />
+          <p class="text-2xl sm:text-4xl  font-bubblegum text-amber-500">MathTastic</p>
         </div>
         <div class="hidden sm:flex items-center gap-x-4">
           <RouterLink to="/educator" class="text-gray-700 hover:text-blue-600 transition-colors">For Educators
