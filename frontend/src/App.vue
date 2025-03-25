@@ -1,22 +1,20 @@
 <script setup lang="ts">
 import { RouterView } from 'vue-router'
 import { onMounted } from 'vue'
+import { getSessionCookie } from '@/lib/helpers'
 
 
 // check authentication
 import { useAuthStore } from "@/stores/authentication"
 
-const authState = useAuthStore()
+const { init } = useAuthStore()
 
 
 onMounted(async () => {
-
-  const cookies = document.cookie.split(';')
-  const sessionCookie = cookies.find(cookie => cookie.trim().startsWith('user'))
-
+  const sessionCookie = getSessionCookie()
   if (sessionCookie) {
     // Cookie exists, initialize auth state
-    await authState.init(sessionCookie)
+    await init(sessionCookie)
   } else {
     console.log('No session cookie found')
   }
