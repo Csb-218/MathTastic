@@ -7,7 +7,7 @@ import StudentForm from '@/components/blocks/authentication/StudentForm.vue'
 import EducatorForm from '@/components/blocks/authentication/EducatorForm.vue'
 
 
-const userRole = ref('student')
+const isStudent = ref('student')
 
 </script>
 
@@ -19,10 +19,13 @@ const userRole = ref('student')
 
     <!-- Role Selector -->
     <div class="flex gap-2 p-1 bg-gray-100 rounded-lg mb-6">
-      <button v-for="role in ['student', 'educator']" :key="role" @click="userRole = role" :class="[
+      <button v-for="role in ['student', 'educator']" :key="role" @click="isStudent = role" :class="[
         'flex-1 py-2 px-4 rounded-md transition-colors',
-        userRole === role
-          ? 'bg-amber-500 text-white shadow'
+        isStudent === role
+          ? role === 'student'
+            ? 'bg-amber-500 text-white shadow'
+            :
+            'bg-blue-500 text-white shadow'
           : 'text-gray-600 hover:bg-gray-200'
       ]">
         {{ role.charAt(0).toUpperCase() + role.slice(1) }}
@@ -30,8 +33,8 @@ const userRole = ref('student')
     </div>
 
     <!-- Render appropriate form based on role -->
-    <StudentForm v-if="userRole === 'student'" />
-    <EducatorForm v-if="userRole === 'educator'" />
+    <StudentForm v-if="isStudent === 'student'" />
+    <EducatorForm v-if="isStudent === 'educator'" />
 
   </div>
 </template>
