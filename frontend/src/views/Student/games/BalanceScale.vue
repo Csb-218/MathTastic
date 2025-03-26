@@ -60,7 +60,7 @@
         <!-- Fixed vertical stand -->
         <img :src="stand" alt="stand" class="stand h-full drop-shadow-lg" />
         <!-- Rotating beam and baskets -->
-        <div class="beam w-[80%] sm:w-[70%] md:w-[60%] lg:w-1/2 cursor-grabbing"
+        <div class="beam w-[70%] sm:w-[60%] md:w-[60%] lg:w-1/2 cursor-grabbing"
           :style="{ transform: `rotate(${tiltAngle}deg)` }">
           <img :src="nut" alt="nut"
             class="absolute top-[10px] left-1/2 -translate-x-1/2 w-[30px] h-[30px] z-50 bg-amber-300 rounded-full border-0">
@@ -136,11 +136,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-
+import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { useEventListener } from '@vueuse/core'
 // Types
 import type { WeighingObject } from '@/types/game'
-
 
 // Services
 // import { gameService } from '@/services/gameService'
@@ -255,7 +254,6 @@ const isBalanced = computed(() =>
   leftWeight.value === rightWeight.value && leftWeight.value !== 0
 )
 
-// Add these computed properties
 const allWeightsUsed = computed(() =>
   availableObjects.value.length === 0
 )
@@ -264,7 +262,6 @@ const hasWon = computed(() =>
   isBalanced.value && allWeightsUsed.value
 )
 
-// Modify the balanceStatus computed property
 const balanceStatus = computed(() =>
   hasWon.value ? 'CONGRATULATIONS! YOU WON!' :
     isBalanced.value ? 'SCALE IS BALANCED!' :
@@ -285,7 +282,6 @@ const drag = (event: DragEvent, obj: WeighingObject) => {
   event.dataTransfer?.setData('objId', obj.id)
 }
 
-// Add this method
 const checkWinCondition = () => {
   if (hasWon.value) {
     showMessage.value = true
@@ -295,7 +291,6 @@ const checkWinCondition = () => {
   }
 }
 
-// Modify the drop method to check win condition
 const drop = (event: DragEvent, pan: 'left' | 'right') => {
   event.preventDefault()
   const objId = event.dataTransfer?.getData('objId')
@@ -344,22 +339,30 @@ const exitGame = async () => {
   }
 }
 
+const handleResize = () => {
+  isMobileView.value = window.innerWidth < 768
+}
+
+const fullScreenChange = () => {
+  if (!document.fullscreenElement) {
+    isPlaying.value = false
+    isFullScreen.value = false
+  }
+}
+
+// Event listeners
+useEventListener(window, 'resize', handleResize)
+useEventListener(document, 'fullscreenchange', fullScreenChange)
+
 // viewport check
-const isMobileView = ref(window.innerWidth < 768) // 768px is standard tablet breakpoint
+const isMobileView = ref(window.innerWidth < 768)
 
 onMounted(() => {
   fetchGameData()
-  window.addEventListener('resize', () => {
-    isMobileView.value = window.innerWidth < 768
-  })
+})
 
-  // Add fullscreen change listener
-  document.addEventListener('fullscreenchange', () => {
-    if (!document.fullscreenElement) {
-      isPlaying.value = false
-      isFullScreen.value = false
-    }
-  })
+onUnmounted(() => {
+  exitGame()
 })
 
 
