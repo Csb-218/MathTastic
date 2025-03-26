@@ -47,6 +47,13 @@
         <p class="z-50 absolute top-1/3 left-1/2 -translate-x-1/2 font-bubblegum text-2xl ">Level 1</p>
       </span>
 
+      <!-- balance status -->
+      <div v-if="showMessage"
+        class="absolute -translate-x-1/2 top-1/4 left-1/2 p-4 text-yellow-400 bg-slate-900/80 rounded-lg transform transition-all duration-300 ease-in-out"
+        :class="{ 'scale-100 opacity-100': showMessage, 'scale-95 opacity-0': !showMessage }">
+        <p class="font-bubblegum text-2xl">{{ balanceStatus }}</p>
+      </div>
+
       <!-- Balance scale -->
       <div class=" flex justify-center my-5 absolute h-2/4 bottom-0 left-1/2 -translate-x-1/2"
         :class="isFullScreen ? ' w-full' : ' w-1/2'">
@@ -68,6 +75,7 @@
                 <img v-if="obj.image" :src="obj.image" :alt="obj.type" class="w-full h-full object-contain" />
               </div>
             </div>
+            <p class="absolute -bottom-7 font-bubblegum text-white text-lg">{{ leftWeight }}</p>
           </div>
           <div
             class="pan right-pan absolute top-[40px] -right-16 w-[150px] h-[150px] flex flex-wrap items-end py-4 justify-center"
@@ -77,7 +85,9 @@
                 draggable="true" @dragstart="drag($event, obj)">
                 <img v-if="obj.image" :src="obj.image" :alt="obj.type" class="w-full h-full object-contain" />
               </div>
+
             </div>
+            <p class="absolute -bottom-7 font-bubblegum text-white text-lg">{{ rightWeight }}</p>
           </div>
         </div>
       </div>
@@ -127,7 +137,12 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+
+// Types
 import type { WeighingObject } from '@/types/game'
+
+
+// Services
 // import { gameService } from '@/services/gameService'
 
 // assets
@@ -145,13 +160,17 @@ import appleIcon from "@/assets/game/apple.svg"
 import bananaIcon from "@/assets/game/banana.svg"
 import orangeIcon from "@/assets/game/orange.svg"
 
+import { getObjectStyle } from "@/lib/helpers"
+
 // State
 const gameContainer = ref<HTMLElement | null>(null)
 const objects = ref<WeighingObject[]>([])
 const loading = ref(true)
 const error = ref<string | null>(null)
 const isFullScreen = ref(false)
+
 const isPlaying = ref(false)
+const showMessage = ref(false)
 
 // Sample game data
 const sampleGameData = {
@@ -235,8 +254,21 @@ const rightWeight = computed(() =>
 const isBalanced = computed(() =>
   leftWeight.value === rightWeight.value && leftWeight.value !== 0
 )
+
+// Add these computed properties
+const allWeightsUsed = computed(() =>
+  availableObjects.value.length === 0
+)
+
+const hasWon = computed(() =>
+  isBalanced.value && allWeightsUsed.value
+)
+
+// Modify the balanceStatus computed property
 const balanceStatus = computed(() =>
-  isBalanced.value ? 'SCALE IS BALANCED! YOU WIN!' : 'SCALE IS NOT BALANCED!'
+  hasWon.value ? 'CONGRATULATIONS! YOU WON!' :
+    isBalanced.value ? 'SCALE IS BALANCED!' :
+      'SCALE IS NOT BALANCED!'
 )
 
 const tiltAngle = computed(() => {
@@ -253,6 +285,17 @@ const drag = (event: DragEvent, obj: WeighingObject) => {
   event.dataTransfer?.setData('objId', obj.id)
 }
 
+// Add this method
+const checkWinCondition = () => {
+  if (hasWon.value) {
+    showMessage.value = true
+    setTimeout(() => {
+      showMessage.value = false
+    }, 2000)
+  }
+}
+
+// Modify the drop method to check win condition
 const drop = (event: DragEvent, pan: 'left' | 'right') => {
   event.preventDefault()
   const objId = event.dataTransfer?.getData('objId')
@@ -261,6 +304,7 @@ const drop = (event: DragEvent, pan: 'left' | 'right') => {
   const obj = objects.value.find(o => o.id === objId)
   if (obj) {
     obj.location = pan
+    checkWinCondition() // Add this line
   }
 }
 
@@ -318,15 +362,7 @@ onMounted(() => {
   })
 })
 
-// Helper function for object styling
-const getObjectStyle = (obj: WeighingObject) => {
-  if (obj.image) {
-    return {}
-  }
-  return {
-    backgroundColor: obj.color
-  }
-}
+
 </script>
 
 <style scoped>
@@ -446,5 +482,26 @@ const getObjectStyle = (obj: WeighingObject) => {
   align-items: center;
   background-size: cover;
   background-position: center;
+}
+
+/* Add to your <style> section */
+.transform {
+  transition: all 0.3s ease-in-out;
+}
+
+@keyframes bounce {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.scale-win {
+  animation: bounce 0.5s ease-in-out;
 }
 </style>
