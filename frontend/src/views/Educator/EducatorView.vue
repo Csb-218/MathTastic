@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import NavbarEducator from '@/components/blocks/navigation/NavbarEducator.vue';
-
+import { RouterView } from 'vue-router';
 const teacherStats = ref({
   totalStudents: 25,
   activeGames: 3,
@@ -13,6 +13,10 @@ const teacherStats = ref({
 <template>
   <div class="min-h-screen bg-gradient-to-b from-amber-50 to-white">
     <NavbarEducator />
+
+    <RouterView />
+
+
 
     <main class="pt-20 px-4 sm:px-6 lg:px-8">
       <div class="max-w-7xl mx-auto">
