@@ -4,6 +4,7 @@ import type { Game } from '@/types/game'
 import NavbarStudent from '@/components/blocks/navigation/NavbarStudent.vue'
 import BalanceScale from './games/BalanceScale.vue'
 
+const loading = ref(false)
 const currentGame = ref<Game | null>(null)
 const similarGames = ref<Game[]>([
   {
@@ -13,7 +14,7 @@ const similarGames = ref<Game[]>([
     image: "https://placehold.co/600x400/purple/white?text=Number+Ninja",
     level: "beginner",
     ageRange: "6-8",
-    activities: [],
+    activities: [], // Initialize as empty array
     targetRange: [1, 20],
     totalPoints: 120,
     template: false

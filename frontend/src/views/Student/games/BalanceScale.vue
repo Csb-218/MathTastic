@@ -181,7 +181,7 @@ const sampleGameData = {
       color: '#FF6B6B',
       type: 'apple',
       image: appleIcon,
-      location: 'available'
+      location: "available" as const
     },
     {
       id: '2',
@@ -189,7 +189,7 @@ const sampleGameData = {
       color: '#FFD93D',
       type: 'banana',
       image: bananaIcon,
-      location: 'available'
+      location: "available" as const
     },
     {
       id: '3',
@@ -197,7 +197,7 @@ const sampleGameData = {
       color: '#FF9F45',
       type: 'orange',
       image: orangeIcon,
-      location: 'available'
+      location: "available" as const
     },
     {
       id: '4',
@@ -205,7 +205,7 @@ const sampleGameData = {
       color: '#FF6B6B',
       type: 'apple',
       image: appleIcon,
-      location: 'available'
+      location: "available" as const
     },
     {
       id: '5',
@@ -213,7 +213,7 @@ const sampleGameData = {
       color: '#FFD93D',
       type: 'banana',
       image: bananaIcon,
-      location: 'available'
+      location: "available" as const
     }
   ]
 }
