@@ -1,9 +1,10 @@
-import type { activity } from './activity'
-export type Game = {
+import type { Activity } from './activity'
+
+export interface Game {
   id: number
   title: string
   description: string
-  activities: [activity]
+  activities: Activity[]
   image: string
   level: string
   ageRange: string
