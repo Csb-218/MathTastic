@@ -22,7 +22,7 @@
         Tap Play to start in fullscreen mode
       </p>
       <!-- play game button -->
-      <button @click="startGame"
+      <button @click="startGame(gameContainer)"
         class="bg-amber-500 hover:bg-amber-600 text-white font-bubblegum py-3 px-8 rounded-full shadow-lg transform transition hover:scale-105">
         Play Game
       </button>
@@ -36,8 +36,8 @@
         <img :src="exit" alt="exit" class="w-10 h-10" />
       </button>
       <!-- Minimize -->
-      <button @click="toggleFullscreen" class="absolute top-4 left-4 p-1 text-white bg-slate-800 rounded  "
-        title="Minimize">
+      <button @click="toggleFullscreen(gameContainer)"
+        class="absolute top-4 left-4 p-1 text-white bg-slate-800 rounded  " title="Minimize">
         <Minimize class="w-10 h-10" />
       </button>
 
@@ -136,13 +136,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useEventListener } from '@vueuse/core'
-// Types
-import type { WeighingObject } from '@/types/game'
+import { storeToRefs } from 'pinia'
 
 // Services
 // import { gameService } from '@/services/gameService'
+
+//store
+import { useBalanceScaleStore } from '@/stores/balanceScale'
 
 // assets
 import { Minimize } from 'lucide-vue-next';
@@ -158,18 +160,37 @@ import level_board from "@/assets/game/level_board.png"
 import appleIcon from "@/assets/game/apple.svg"
 import bananaIcon from "@/assets/game/banana.svg"
 import orangeIcon from "@/assets/game/orange.svg"
-
+// helpers
 import { getObjectStyle } from "@/lib/helpers"
 
 // State
 const gameContainer = ref<HTMLElement | null>(null)
-const objects = ref<WeighingObject[]>([])
 const loading = ref(true)
 const error = ref<string | null>(null)
-const isFullScreen = ref(false)
 
-const isPlaying = ref(false)
-const showMessage = ref(false)
+const {
+  tiltAngle,
+  leftPanObjects,
+  rightPanObjects,
+  leftWeight,
+  rightWeight,
+  availableObjects,
+  balanceStatus,
+  showMessage,
+  isPlaying,
+  isFullScreen } = storeToRefs(useBalanceScaleStore())
+
+const {
+  initGameObjects,
+  fullScreenChange,
+  exitGame,
+  startGame,
+  resetGame,
+  drop,
+  drag,
+  allowDrop,
+  toggleFullscreen
+} = useBalanceScaleStore()
 
 // Sample game data
 const sampleGameData = {
@@ -223,131 +244,19 @@ const fetchGameData = async () => {
     loading.value = true
     // Simulate API call with setTimeout
     await new Promise(resolve => setTimeout(resolve, 1000))
-    objects.value = sampleGameData.objects
+    initGameObjects(sampleGameData.objects)
   } catch (err) {
     error.value = 'Failed to load game objects'
     console.error(err)
   } finally {
+    console.log('Objects loaded:', availableObjects)
     loading.value = false
   }
 }
 
-// Computed properties
-const availableObjects = computed(() =>
-  objects.value.filter(obj => obj.location === 'available')
-)
-const leftPanObjects = computed(() =>
-  objects.value.filter(obj => obj.location === 'left')
-)
-const rightPanObjects = computed(() =>
-  objects.value.filter(obj => obj.location === 'right')
-)
-
-const leftWeight = computed(() =>
-  leftPanObjects.value.reduce((sum, obj) => sum + obj.weight, 0)
-)
-const rightWeight = computed(() =>
-  rightPanObjects.value.reduce((sum, obj) => sum + obj.weight, 0)
-)
-
-const isBalanced = computed(() =>
-  leftWeight.value === rightWeight.value && leftWeight.value !== 0
-)
-
-const allWeightsUsed = computed(() =>
-  availableObjects.value.length === 0
-)
-
-const hasWon = computed(() =>
-  isBalanced.value && allWeightsUsed.value
-)
-
-const balanceStatus = computed(() =>
-  hasWon.value ? 'CONGRATULATIONS! YOU WON!' :
-    isBalanced.value ? 'SCALE IS BALANCED!' :
-      'SCALE IS NOT BALANCED!'
-)
-
-const tiltAngle = computed(() => {
-  const weightDifference = rightWeight.value - leftWeight.value
-  return Math.min(Math.max(weightDifference * 5, -30), 30)
-})
-
 // Methods
-const allowDrop = (event: DragEvent) => {
-  event.preventDefault()
-}
-
-const drag = (event: DragEvent, obj: WeighingObject) => {
-  event.dataTransfer?.setData('objId', obj.id)
-}
-
-const checkWinCondition = () => {
-  if (hasWon.value) {
-    showMessage.value = true
-    setTimeout(() => {
-      showMessage.value = false
-    }, 2000)
-  }
-}
-
-const drop = (event: DragEvent, pan: 'left' | 'right') => {
-  event.preventDefault()
-  const objId = event.dataTransfer?.getData('objId')
-  if (!objId) return
-
-  const obj = objects.value.find(o => o.id === objId)
-  if (obj) {
-    obj.location = pan
-    checkWinCondition() // Add this line
-  }
-}
-
-const resetGame = () => {
-  objects.value.forEach(obj => {
-    obj.location = 'available'
-  })
-}
-
-const toggleFullscreen = async () => {
-  if (!document.fullscreenElement) {
-    await gameContainer.value?.requestFullscreen()
-    isFullScreen.value = true
-  } else {
-    await document.exitFullscreen()
-    isFullScreen.value = false
-  }
-}
-
-const startGame = async () => {
-  try {
-    await gameContainer.value?.requestFullscreen()
-    isPlaying.value = true
-    isFullScreen.value = true
-  } catch (err) {
-    console.error('Failed to enter fullscreen:', err)
-  }
-}
-
-const exitGame = async () => {
-  try {
-    await document.exitFullscreen()
-    isPlaying.value = false
-    isFullScreen.value = false
-  } catch (err) {
-    console.error('Failed to exit fullscreen:', err)
-  }
-}
-
 const handleResize = () => {
   isMobileView.value = window.innerWidth < 768
-}
-
-const fullScreenChange = () => {
-  if (!document.fullscreenElement) {
-    isPlaying.value = false
-    isFullScreen.value = false
-  }
 }
 
 // Event listeners
@@ -357,8 +266,8 @@ useEventListener(document, 'fullscreenchange', fullScreenChange)
 // viewport check
 const isMobileView = ref(window.innerWidth < 768)
 
-onMounted(() => {
-  fetchGameData()
+onMounted(async () => {
+  await fetchGameData()
 })
 
 onUnmounted(() => {
