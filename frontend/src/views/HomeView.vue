@@ -61,11 +61,9 @@ const gamesList = [
 </script>
 
 <template>
-  <div class="min-h-screen bg-gradient-to-r to-amber-200 from-cyan-100">
-    <!-- Responsive Navbar -->
-    <NavbarStandard />
-
-
+  <!-- Responsive Navbar -->
+  <NavbarStandard />
+  <div class="min-h-screen mt-16 bg-gradient-to-r to-amber-200 from-cyan-100">
     <!-- Main Content with padding for fixed navbar -->
     <main class="pt-20 flex flex-col items-center">
       <!-- Hero Section -->
@@ -94,6 +92,7 @@ const gamesList = [
         </div>
       </section>
     </main>
-    <Footer />
+
   </div>
+  <Footer/>
 </template>
