@@ -16,7 +16,6 @@ export interface Game {
 export interface WeighingObject {
   id: string
   weight: number
-  color: string
   image?: string
   type: string
   location: 'available' | 'left' | 'right'
