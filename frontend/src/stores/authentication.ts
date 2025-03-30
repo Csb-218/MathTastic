@@ -12,6 +12,7 @@ export const useAuthStore = defineStore('auth', {
       name: '',
       email: '',
       role: '',
+      uid: '',
     }
   },
   getters: {
@@ -37,6 +38,7 @@ export const useAuthStore = defineStore('auth', {
       if (user_data.name) this.name = user_data.name
       if (user_data.role) this.role = user_data.role
       if (user_data.email) this.email = user_data.email
+      if (user_data.uid) this.uid = user_data.uid
     },
 
     async init(cookie: string): Promise<void> {
@@ -50,6 +52,7 @@ export const useAuthStore = defineStore('auth', {
           name: decoded_token.name,
           email: decoded_token.email,
           role: decoded_token.role,
+          uid: decoded_token.uid,
         })
       } catch (error) {
         console.error('Failed to initialize session:', error)
@@ -63,6 +66,7 @@ export const useAuthStore = defineStore('auth', {
       this.name = ''
       this.email = ''
       this.role = ''
+      this.uid = ''
     },
   },
 })
