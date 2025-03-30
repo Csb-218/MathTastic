@@ -1,15 +1,15 @@
 import type { Activity } from './activity'
 
 export interface Game {
-  id: number
+  id: string
   title: string
   description: string
-  activities: Activity[]
+  difficulty: 'easy' | 'medium' | 'hard'
+  age_range: string
   image: string
-  level: string
-  ageRange: string
-  targetRange: [number, number]
-  totalPoints: number
+  activities: Activity[]
+  target_range: [number, number]
+  total_points: number
   template: boolean
 }
 
