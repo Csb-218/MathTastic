@@ -1,14 +1,12 @@
-import type { Game } from './game'
-import type { Activity } from './activity'
-
-export interface progress {
-  student_uid: string
-  games_played: game_progress[]
-  points: number
+export interface game_progress {
+  game_id: string
+  current_level: number
+  total_levels: number | null
+  points_gained: number
+  total_points: number | null
 }
 
-export interface game_progress {
-  game: Game
-  current_level: number
-  completed_activities: Activity[]
+export interface progress_object {
+  id: string
+  data: game_progress
 }
