@@ -2,83 +2,100 @@ import { db } from '@/config/firebaseConfig'
 import {
   collection,
   addDoc,
-  where,
-  query,
-  getDocs,
   updateDoc,
   doc,
+  getDocs,
+  query,
+  where,
   increment,
-  onSnapshot,
 } from 'firebase/firestore'
-import type { progress, progress_object } from '@/types/progress'
+import type { game_progress, progress_object } from '@/types/progress'
 
-export async function createProgress(progressObject: progress): Promise<string> {
+export async function createProgress(uid: string, game: game_progress): Promise<string> {
   try {
-    const docRef = await addDoc(collection(db, 'progress'), progressObject)
-    return docRef.id
-  } catch (err) {
-    console.error(err)
-    return ''
-  }
-}
+    // Get a reference to the user's document in the progress collection
+    const userRef = doc(collection(db, 'progress'), uid)
 
-export async function updateProgress(progressObject: progress) {
-  try {
-    // First get the document reference using student_uid
-    const progress_collection = collection(db, 'progress')
-    const q = query(progress_collection, where('student_uid', '==', progressObject.student_uid))
-    const querySnapshot = await getDocs(q)
+    // Create games_played subcollection within the user's document
+    const gamesPlayedRef = collection(userRef, 'games_played')
 
-    if (querySnapshot.empty) {
-      throw new Error('No document found for this student_uid')
-    }
-
-    // Get the actual document ID
-    const docId = querySnapshot.docs[0].id
-
-    // Update using the correct document ID
-    const docRef = doc(db, 'progress', docId)
-    await updateDoc(docRef, {
-      games_played: progressObject.games_played,
-      points: increment(progressObject.points),
+    const gameDoc = await addDoc(gamesPlayedRef, {
+      ...game,
+      created_at: new Date(),
+      updated_at: new Date(),
     })
 
-    console.log('Document successfully updated!')
+    return gameDoc.id
   } catch (err) {
-    console.error('Error updating document: ', err)
-    throw err // Re-throw to handle in calling code
+    console.error(err)
+    throw err
   }
 }
 
-export async function getProgressByStudentUid(studentUid: string): Promise<progress_object | null> {
+export async function updateProgress(
+  uid: string,
+  progress_id: string,
+  updates: Partial<game_progress>,
+) {
   try {
-    const progress_collection = collection(db, 'progress')
-    const q = query(progress_collection, where('student_uid', '==', studentUid))
+    // Get direct reference to the game document
+    const gameDocRef = doc(db, 'progress', uid, 'games_played', progress_id)
 
-    const querySnapshot = await getDocs(q)
-    if (querySnapshot.empty) {
-      console.log('No matching documents.')
+    await updateDoc(gameDocRef, {
+      current_level: updates.current_level,
+      points_gained: increment(updates?.points_gained ?? 0),
+      updated_at: new Date(),
+    })
+
+    console.log('Game progress successfully updated!')
+  } catch (err) {
+    console.error('Error updating game progress:', err)
+    throw err
+  }
+}
+
+export async function getProgressByStudentUid(
+  uid: string,
+  game_id: string,
+): Promise<progress_object | null> {
+  try {
+    const userRef = doc(collection(db, 'progress'), uid)
+
+    const gamesPlayedRef = collection(userRef, 'games_played')
+
+    const q = query(gamesPlayedRef, where('game_id', '==', game_id))
+
+    const gameDoc = await getDocs(q)
+
+    if (gameDoc.empty) {
+      console.log('No matching game found.')
       return null
     }
 
-    console.log(querySnapshot.docs)
+    const progress_values: progress_object = {
+      data: gameDoc.docs[0].data() as game_progress,
+      id: gameDoc.docs[0].id,
+    }
 
-    const student_progress: progress = querySnapshot.docs[0].data() as progress
-    const id: string = querySnapshot.docs[0].id
-
-    return {
-      id,
-      data: student_progress,
-    } as progress_object
+    return progress_values
   } catch (err) {
-    console.error(err)
+    console.error('Error getting game progress:', err)
     return null
   }
 }
 
-export async function listenToProgress(id: string) {
-  const unsub = onSnapshot(doc(db, 'progress', id), (doc) => {
-    console.log('Current data: ', doc.data())
-  })
-  return unsub
+export async function resetProgress(uid: string, progress_id: string) {
+  try {
+    const gameDocRef = doc(db, 'progress', uid, 'games_played', progress_id)
+
+    await updateDoc(gameDocRef, {
+      current_level: 0,
+      points_gained: 0,
+      updated_at: new Date(),
+    })
+
+    console.log('Game progress successfully reset!')
+  } catch (err) {
+    console.error('Error resetting game progress:', err)
+  }
 }
