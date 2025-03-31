@@ -14,19 +14,8 @@
     </div>
 
     <!-- Mobile View with Play Button -->
-    <div v-else-if="isMobileView && !isPlaying"
-      class="absolute inset-0 flex flex-col p-2 items-center justify-center bg-white/90">
-      <PlayCircleIcon class="h-12 w-12 mb-4 text-amber-600" />
-      <h2 class="font-bubblegum text-2xl text-amber-600 mb-2">Balance Scale</h2>
-      <p class="font-bubblegum text-gray-600 mb-6 px-4 text-center">
-        Tap Play to start in fullscreen mode
-      </p>
-      <!-- play game button -->
-      <button @click="startGame(gameContainer)"
-        class="bg-amber-500 hover:bg-amber-600 text-white font-bubblegum py-3 px-8 rounded-full shadow-lg transform transition hover:scale-105">
-        Play Game
-      </button>
-    </div>
+    <OverLay v-else-if="(isMobileView && !isPlaying) || isCompleted" :start-game="startGame" :restartGame="restartGame"
+      :container="gameContainer" :isCompleted="isCompleted" />
 
     <!-- Game content -->
     <template v-else>
@@ -44,7 +33,8 @@
       <!-- Level board -->
       <span class="absolute top-4 left-1/2 -translate-x-1/2 p-2 text-white">
         <img :src="level_board" alt="level_board" class="h-20" />
-        <p class="z-50 absolute top-1/3 left-1/2 -translate-x-1/2 font-bubblegum text-2xl ">Level 1</p>
+        <p class="z-50 absolute top-1/3 left-1/2 -translate-x-1/2 font-bubblegum text-2xl ">Level {{ currentLevel }}
+        </p>
       </span>
 
       <!-- balance status -->
@@ -70,8 +60,8 @@
             class="pan left-pan absolute top-[40px] -left-16 w-[150px] h-[150px] flex flex-wrap items-end py-4 justify-center"
             @drop="drop($event, 'left')" @dragover="allowDrop">
             <div v-for="obj in leftPanObjects" :key="obj.id" class="object-container">
-              <div :id="obj.id" class="game-object w-[30px] h-[30px] rounded-full " :style="getObjectStyle(obj)"
-                draggable="true" @dragstart="drag($event, obj)">
+              <div :id="obj.id" class="game-object w-[30px] h-[30px] rounded-full " draggable="true"
+                @dragstart="drag($event, obj)">
                 <img v-if="obj.image" :src="obj.image" :alt="obj.type" class="w-full h-full object-contain" />
               </div>
             </div>
@@ -81,8 +71,8 @@
             class="pan right-pan absolute top-[40px] -right-16 w-[150px] h-[150px] flex flex-wrap items-end py-4 justify-center"
             @drop="drop($event, 'right')" @dragover="allowDrop">
             <div v-for="obj in rightPanObjects" :key="obj.id" class="object-container">
-              <div :id="obj.id" class="game-object w-[30px] h-[30px] rounded-full " :style="getObjectStyle(obj)"
-                draggable="true" @dragstart="drag($event, obj)">
+              <div :id="obj.id" class="game-object w-[30px] h-[30px] rounded-full " draggable="true"
+                @dragstart="drag($event, obj)">
                 <img v-if="obj.image" :src="obj.image" :alt="obj.type" class="w-full h-full object-contain" />
               </div>
 
@@ -97,8 +87,8 @@
         <div class="flex justify-center gap-2 ">
           <div v-for="obj in availableObjects" :key="obj.id"
             class="object-container flex flex-col items-center m-1 cursor-grabbing">
-            <div :id="obj.id" class="game-object w-[30px] h-[30px] rounded-full " :style="getObjectStyle(obj)"
-              draggable="true" @dragstart="drag($event, obj)">
+            <div :id="obj.id" class="game-object w-[30px] h-[30px] rounded-full " draggable="true"
+              @dragstart="drag($event, obj)">
               <img v-if="obj.image" :src="obj.image" :alt="obj.type" class="w-full h-full object-contain" />
               <p class="text-white font-bubblegum">{{ obj.weight }}</p>
             </div>
@@ -136,38 +126,47 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, watch, computed } from 'vue'
 import { useEventListener } from '@vueuse/core'
 import { storeToRefs } from 'pinia'
-
-// Services
-// import { gameService } from '@/services/gameService'
-
+import type { Game } from '@/types/game'
+import type { game_progress } from '@/types/progress'
+import { createWeighingObjectsFromActivity } from '@/lib/helpers'
+import {
+  doc,
+  onSnapshot,
+} from 'firebase/firestore'
+import { db } from '@/config/firebaseConfig'
+import {
+  updateProgress,
+  resetProgress
+} from '@/services/FireStoreService'
 //store
-import { useBalanceScaleStore } from '@/stores/balanceScale'
-
+import { useBalanceScaleStore } from '@/stores/Gameplay/BalanceScale/balanceScale'
+import { useAuthStore } from '@/stores/authentication'
 // assets
 import { Minimize } from 'lucide-vue-next';
-import { PlayCircleIcon } from 'lucide-vue-next'
-import nut from "@/assets/game/nut_dark.svg"
-import stand from "@/assets/game/Stand.png"
-import reload from "@/assets/game/reload.png"
-import exit from "@/assets/game/exit.png"
-import leaderboard from "@/assets/game/leaderboard.png"
-import more_games from "@/assets/game/more_games.png"
-import music from "@/assets/game/music.png"
-import level_board from "@/assets/game/level_board.png"
-import appleIcon from "@/assets/game/apple.svg"
-import bananaIcon from "@/assets/game/banana.svg"
-import orangeIcon from "@/assets/game/orange.svg"
-// helpers
-import { getObjectStyle } from "@/lib/helpers"
+import OverLay from '@/components/blocks/game/OverLay.vue'
+import { exit, leaderboard, level_board, more_games, music, nut, reload, stand } from "@/assets/game"
+import { SoundService } from '@/services/SoundService'
 
-// State
+
+// props
+const { currentGame, progress_id } = defineProps<{
+  currentGame: Game
+  progress_id: string
+}>()
+
+// States
+const currentLevel = ref<number>(0)
 const gameContainer = ref<HTMLElement | null>(null)
 const loading = ref(true)
 const error = ref<string | null>(null)
+// viewport check
+const isMobileView = ref(window.innerWidth < 768)
 
+
+// store states , getters and actions
 const {
   tiltAngle,
   leftPanObjects,
@@ -178,6 +177,7 @@ const {
   balanceStatus,
   showMessage,
   isPlaying,
+  hasWon,
   isFullScreen } = storeToRefs(useBalanceScaleStore())
 
 const {
@@ -192,59 +192,53 @@ const {
   toggleFullscreen
 } = useBalanceScaleStore()
 
-// Sample game data
-const sampleGameData = {
-  objects: [
-    {
-      id: '1',
-      weight: 2,
-      color: '#FF6B6B',
-      type: 'apple',
-      image: appleIcon,
-      location: "available" as const
-    },
-    {
-      id: '2',
-      weight: 3,
-      color: '#FFD93D',
-      type: 'banana',
-      image: bananaIcon,
-      location: "available" as const
-    },
-    {
-      id: '3',
-      weight: 4,
-      color: '#FF9F45',
-      type: 'orange',
-      image: orangeIcon,
-      location: "available" as const
-    },
-    {
-      id: '4',
-      weight: 2,
-      color: '#FF6B6B',
-      type: 'apple',
-      image: appleIcon,
-      location: "available" as const
-    },
-    {
-      id: '5',
-      weight: 3,
-      color: '#FFD93D',
-      type: 'banana',
-      image: bananaIcon,
-      location: "available" as const
-    }
-  ]
+const { uid } = storeToRefs(useAuthStore())
+
+
+// Methods
+
+// resize
+const handleResize = () => {
+  isMobileView.value = window.innerWidth < 768
+}
+// restart game
+const restartGame = async () => {
+  await resetProgress(uid.value, progress_id)
+  console.log("restart game successfully")
 }
 
-// Fetch game data
-const fetchGameData = async () => {
+// Fetch game state
+const fetchGameState = async () => {
+
   try {
-    loading.value = true
-    // Simulate API call with setTimeout
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    initGameObjects(sampleGameData.objects)
+
+    onSnapshot(doc(db, `/progress/${uid.value}/games_played/${progress_id}`), (doc) => {
+      const data = doc.data()
+      if (!data) {
+        console.error('No such document!')
+        return
+      }
+
+      currentLevel.value = data.current_level
+
+      const level = data.current_level
+      const hasNextLevel = data.total_levels > level
+      const hasCompleted = (data.total_levels === level) && (data.points_gained === data.total_points)
+
+
+      if (hasNextLevel) {
+        // init next level
+        const activity_objects = createWeighingObjectsFromActivity(currentGame.activities[level])
+        initGameObjects(activity_objects)
+      }
+
+      if (hasCompleted) {
+        console.log("Completed")
+        return
+      }
+
+    })
+
   } catch (err) {
     error.value = 'Failed to load game objects'
     console.error(err)
@@ -254,20 +248,45 @@ const fetchGameData = async () => {
   }
 }
 
-// Methods
-const handleResize = () => {
-  isMobileView.value = window.innerWidth < 768
-}
+// computed values
+
+// points gained
+const pointsGained = computed(() => {
+  return currentGame.activities[currentLevel.value].points
+})
+// check if the game is completed
+const isCompleted = computed(() => {
+  const value = currentLevel.value === currentGame.activities.length
+  if (value) SoundService.play('win')
+  return value
+})
+
+// handle win
+watch(
+  hasWon,
+  async () => {
+    // check if user is student
+    if (hasWon.value) {
+
+      const updates: Partial<game_progress> = {
+        points_gained: pointsGained.value,
+        current_level: ++currentLevel.value,
+      }
+      // update current level
+      await updateProgress(uid.value, progress_id, updates)
+      console.log("updated")
+    }
+
+  }
+)
 
 // Event listeners
 useEventListener(window, 'resize', handleResize)
 useEventListener(document, 'fullscreenchange', fullScreenChange)
 
-// viewport check
-const isMobileView = ref(window.innerWidth < 768)
 
 onMounted(async () => {
-  await fetchGameData()
+  await fetchGameState()
 })
 
 onUnmounted(() => {
