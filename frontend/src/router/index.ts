@@ -1,9 +1,15 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
+import AdminView from '@/views/AdminView.vue'
+import AllGames from '@/views/AllGames.vue'
+import PlayGame from '@/views/Student/PlayGame.vue'
 import AuthenticationForm from '@/views/Authentication/AuthenticationForm.vue'
 import EducatorView from '@/views/Educator/EducatorView.vue'
-import StudentView from '@/views/Student/StudentView.vue'
-import AdminView from '@/views/AdminView.vue'
+import CreateGame from '@/views/Educator/CreateGame.vue'
+
+import StudentHome from '@/views/Student/StudentHome.vue'
+import BalanceScale from '@/views/Student/games/BalanceScale.vue'
+import StudentProfile from '@/views/Student/profile/StudentProfile.vue'
 
 // store
 import { useAuthStore } from '@/stores/authentication'
@@ -29,21 +35,65 @@ const router = createRouter({
       path: '/login',
       name: 'login',
       component: AuthenticationForm,
-      // route level code-splitting
-      // this generates a separate chunk (About.[hash].js) for this route
-      // which is lazy-loaded when the route is visited.
     },
+    {
+      path: '/games',
+      name: 'games',
+      component: AllGames,
+    },
+    {
+      path: '/play/:id',
+      name: 'play',
+      component: PlayGame,
+      meta: { requiresAuth: true, role: 'student' },
+    },
+
     {
       path: '/student',
       name: 'student',
-      component: StudentView,
-      meta: { requiresAuth: true, role: 'student' }
+      component: StudentHome,
+      meta: { requiresAuth: true, role: 'student' },
+      children: [
+        {
+          path: 'play',
+          name: 'balance-scale',
+          component: BalanceScale,
+        },
+        {
+          path: 'dashboard',
+          name: 'dashboard',
+          component: StudentProfile,
+        },
+        {
+          path: 'progress',
+          name: 'progress',
+          component: StudentProfile,
+        },
+        {
+          path: 'assessment',
+          name: 'assessment',
+          component: StudentProfile,
+        },
+        {
+          path: 'workbook',
+          name: 'workbook',
+          component: StudentProfile,
+        }
+
+      ]
     },
     {
       path: '/educator',
       name: 'educator',
       component: EducatorView,
-      meta: { requiresAuth: true, role: 'educator' }
+      meta: { requiresAuth: true, role: 'educator' },
+      children: [
+        {
+          path: 'create',
+          name: 'create',
+          component: CreateGame,
+        }
+      ]
     },
     {
       path: '/admin',

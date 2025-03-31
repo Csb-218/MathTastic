@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" id="game">
+  <g transform="translate(-62.74 -968.05)">
+    <circle cx="78.74" cy="984.051" r="16" fill="#5dc560"></circle>
+    <g stroke="#373748" transform="translate(67.486 332.051)scale(.62936)">
+      <path fill="#f2f2f2" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.004" d="M9.443 1031.238a7 7.062 0 0 0-7 7.062 7 7.062 0 0 0 7 7.062 7 7.062 0 0 0 6.591-4.708h3.932a7 7.062 0 0 0 6.59 4.708 7 7.062 0 0 0 7.001-7.062 7 7.062 0 0 0-7-7.062 7 7.062 0 0 0-.39.016v-.016H9.833v.022a7 7.062 0 0 0-.389-.022z" color="#000" overflow="visible" style="isolation:auto;mix-blend-mode:normal"></path>
+      <path fill="#5fd38d" fill-rule="evenodd" stroke-linecap="round" stroke-linejoin="round" stroke-width=".642" d="M1 1070.362v4m2-2h-4" transform="matrix(1.55575 0 0 1.56931 7.499 -644.57)"></path>
+      <ellipse cx="26.594" cy="1035.161" fill="#ffd42a" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.004" color="#000" overflow="visible" rx="1.25" ry="1.259" style="isolation:auto;mix-blend-mode:normal"></ellipse>
+      <ellipse cx="29.705" cy="1038.301" fill="#2a7fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.004" color="#000" overflow="visible" rx="1.25" ry="1.259" style="isolation:auto;mix-blend-mode:normal"></ellipse>
+      <ellipse cx="26.594" cy="1041.439" fill="#5fd38d" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.004" color="#000" overflow="visible" rx="1.25" ry="1.259" style="isolation:auto;mix-blend-mode:normal"></ellipse>
+      <ellipse cx="23.482" cy="1038.3" fill="#f55" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.004" color="#000" overflow="visible" rx="1.25" ry="1.259" style="isolation:auto;mix-blend-mode:normal"></ellipse>
+      <path fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.004" d="M18 1031.155v-4h-2c-2 0-2-3 0-3h4c2 0 2-3 0-3h-2v-3"></path>
+    </g>
+  </g>
+</svg>

@@ -2,70 +2,58 @@
 import Hero from "@/components/blocks/Hero/Hero.vue"
 import NavbarStandard from '@/components/blocks/navigation/NavbarStandard.vue'
 import Footer from "../components/blocks/Footer.vue"
-import Games from "../components/blocks/Hero/Games.vue"
+import Games from "../components/blocks/Hero/GamesSection.vue"
 import FAQ from '@/components/blocks/Hero/FAQ.vue'
 import Testimonials from '../components/blocks/Hero/Testimonials.vue'
 import ChildPlay from "@/assets/childplay.svg"
+import type { Game } from '@/types/game'
 
-const gamesList = [
+
+const dummyGames: Game[] = [
   {
     id: 1,
-    title: "Balance Fun",
-    description: "Learn addition by balancing numbers on a magical scale!",
-    image: "https://picsum.photos/id/101/800/600",
-    level: "Beginner",
-    ageRange: "4-6 years"
+    title: "Balance the Scale",
+    description: "Learn addition and subtraction by balancing weights on a scale",
+    image: "https://placehold.co/600x400/orange/white?text=Balance+Scale",
+    level: "beginner",
+    ageRange: "6-8",
+    activities: [], // Initialize as empty array
+    targetRange: [1, 20],
+    totalPoints: 100,
+    template: false
   },
   {
     id: 2,
-    title: "Number Quest",
-    description: "Embark on an adventure to find matching number pairs!",
-    image: "https://picsum.photos/id/102/800/600",
-    level: "Intermediate",
-    ageRange: "6-8 years"
+    title: "Number Ninja",
+    description: "Slice through numbers to master multiplication tables",
+    image: "https://placehold.co/600x400/purple/white?text=Number+Ninja",
+    level: "intermediate",
+    ageRange: "8-10",
+    activities: [],
+    targetRange: [1, 50],
+    totalPoints: 150,
+    template: false
   },
   {
     id: 3,
-    title: "Math Heroes",
-    description: "Save the day by solving exciting math challenges!",
-    image: "https://picsum.photos/id/103/800/600",
-    level: "Advanced",
-    ageRange: "8-10 years"
-  },
-  {
-    id: 4,
-    title: "Balance Fun",
-    description: "Learn addition by balancing numbers on a magical scale!",
-    image: "https://picsum.photos/id/101/800/600",
-    level: "Beginner",
-    ageRange: "4-6 years"
-  },
-  {
-    id: 5,
-    title: "Number Quest",
-    description: "Embark on an adventure to find matching number pairs!",
-    image: "https://picsum.photos/id/102/800/600",
-    level: "Intermediate",
-    ageRange: "6-8 years"
-  },
-  {
-    id: 6,
-    title: "Math Heroes",
-    description: "Save the day by solving exciting math challenges!",
-    image: "https://picsum.photos/id/103/800/600",
-    level: "Advanced",
-    ageRange: "8-10 years"
+    title: "Fraction Factory",
+    description: "Build and compare fractions in this fun factory game",
+    image: "https://placehold.co/600x400/blue/white?text=Fraction+Factory",
+    level: "advanced",
+    ageRange: "9-11",
+    activities: [],
+    targetRange: [1, 100],
+    totalPoints: 200,
+    template: false
   }
 ]
 
 </script>
 
 <template>
-  <div class="min-h-screen bg-gradient-to-r to-amber-200 from-cyan-100">
-    <!-- Responsive Navbar -->
-    <NavbarStandard />
-
-
+  <!-- Responsive Navbar -->
+  <NavbarStandard />
+  <div class="min-h-screen mt-16 bg-gradient-to-r to-amber-200 from-cyan-100">
     <!-- Main Content with padding for fixed navbar -->
     <main class="pt-20 flex flex-col items-center">
       <!-- Hero Section -->
@@ -76,7 +64,7 @@ const gamesList = [
       <!-- Features Grid of Games -->
       <section class=" bg-white py-12 sm:py-16">
         <div class="max-w-8xl mx-auto px-4 sm:px-6 lg:px-12">
-          <Games :games="gamesList" />
+          <Games :games="dummyGames" />
         </div>
       </section>
 
@@ -94,6 +82,7 @@ const gamesList = [
         </div>
       </section>
     </main>
-    <Footer />
+
   </div>
+  <Footer />
 </template>
