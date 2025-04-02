@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import type { Game } from '@/types/game'
-// import AxiosInstance from '@/config/axiosConfig'
+import { getAllGames } from '@/services/GameService'
 import NavbarStandard from '@/components/blocks/navigation/NavbarStandard.vue'
 
 const games = ref<Game[]>([])
@@ -10,57 +10,62 @@ const error = ref('')
 
 
 
-const dummyGames: Game[] = [
-  {
-    id: 1,
-    title: "Balance the Scale",
-    description: "Learn addition and subtraction by balancing weights on a scale",
-    image: "https://placehold.co/600x400/orange/white?text=Balance+Scale",
-    level: "beginner",
-    ageRange: "6-8",
-    activities: [], // Initialize as empty array
-    targetRange: [1, 20],
-    totalPoints: 100,
-    template: false
-  },
-  {
-    id: 2,
-    title: "Number Ninja",
-    description: "Slice through numbers to master multiplication tables",
-    image: "https://placehold.co/600x400/purple/white?text=Number+Ninja",
-    level: "intermediate",
-    ageRange: "8-10",
-    activities: [],
-    targetRange: [1, 50],
-    totalPoints: 150,
-    template: false
-  },
-  {
-    id: 3,
-    title: "Fraction Factory",
-    description: "Build and compare fractions in this fun factory game",
-    image: "https://placehold.co/600x400/blue/white?text=Fraction+Factory",
-    level: "advanced",
-    ageRange: "9-11",
-    activities: [],
-    targetRange: [1, 100],
-    totalPoints: 200,
-    template: false
-  }
-]
+// const dummyGames: Game[] = [
+//   {
+//     id: 1,
+//     title: "Balance the Scale",
+//     description: "Learn addition and subtraction by balancing weights on a scale",
+//     image: "https://placehold.co/600x400/orange/white?text=Balance+Scale",
+//     level: "beginner",
+//     ageRange: "6-8",
+//     activities: [], // Initialize as empty array
+//     targetRange: [1, 20],
+//     totalPoints: 100,
+//     template: false
+//   },
+//   {
+//     id: 2,
+//     title: "Number Ninja",
+//     description: "Slice through numbers to master multiplication tables",
+//     image: "https://placehold.co/600x400/purple/white?text=Number+Ninja",
+//     level: "intermediate",
+//     ageRange: "8-10",
+//     activities: [],
+//     targetRange: [1, 50],
+//     totalPoints: 150,
+//     template: false
+//   },
+//   {
+//     id: 3,
+//     title: "Fraction Factory",
+//     description: "Build and compare fractions in this fun factory game",
+//     image: "https://placehold.co/600x400/blue/white?text=Fraction+Factory",
+//     level: "advanced",
+//     ageRange: "9-11",
+//     activities: [],
+//     targetRange: [1, 100],
+//     totalPoints: 200,
+//     template: false
+//   }
+// ]
 
+// const fetchGames = async () => {
+//   try {
+//     // Simulate API delay
+//     await new Promise(resolve => setTimeout(resolve, 1000))
+//     games.value = dummyGames
+//   } catch (err) {
+//     error.value = 'Failed to load games'
+//     console.error(err)
+//   } finally {
+//     loading.value = false
+//   }
+// }
 const fetchGames = async () => {
-  try {
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    games.value = dummyGames
-  } catch (err) {
-    error.value = 'Failed to load games'
-    console.error(err)
-  } finally {
-    loading.value = false
-  }
+  games.value = await getAllGames()
+  loading.value = false
 }
+
 
 onMounted(() => {
   fetchGames()
@@ -111,7 +116,7 @@ onMounted(() => {
               </span>
               <button
                 class="bg-amber-500 hover:bg-amber-600 text-white font-bubblegum py-2 px-4 rounded-lg transition-colors duration-300"
-                @click="$router.push(`/student/play/${game.id}`)">
+                @click="$router.push(`/play/${game.id}`)">
                 Play Now
               </button>
             </div>
