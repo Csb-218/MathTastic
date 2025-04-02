@@ -21,7 +21,7 @@ async def get_games():
             GameResponse(
             id=str(game.id),
             title=game.title,
-            creator= str(game.creator.id),
+            creator= str(game.creator),
             activities=list(game.activities),
             target_range=game.target_range,
             max_time_allowed=game.max_time_allowed,
