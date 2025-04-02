@@ -11,39 +11,39 @@ import type { Game } from '@/types/game'
 
 const dummyGames: Game[] = [
   {
-    id: 1,
+    id: "1",
     title: "Balance the Scale",
     description: "Learn addition and subtraction by balancing weights on a scale",
     image: "https://placehold.co/600x400/orange/white?text=Balance+Scale",
-    level: "beginner",
-    ageRange: "6-8",
+    difficulty: "easy",
+    age_range: "6-8",
     activities: [], // Initialize as empty array
-    targetRange: [1, 20],
-    totalPoints: 100,
+    target_range: [1, 20],
+    total_points: 100,
     template: false
   },
   {
-    id: 2,
+    id: '2',
     title: "Number Ninja",
     description: "Slice through numbers to master multiplication tables",
     image: "https://placehold.co/600x400/purple/white?text=Number+Ninja",
-    level: "intermediate",
-    ageRange: "8-10",
+    difficulty: "medium",
+    age_range: "8-10",
     activities: [],
-    targetRange: [1, 50],
-    totalPoints: 150,
+    target_range: [1, 50],
+    total_points: 150,
     template: false
   },
   {
-    id: 3,
+    id: '3',
     title: "Fraction Factory",
     description: "Build and compare fractions in this fun factory game",
     image: "https://placehold.co/600x400/blue/white?text=Fraction+Factory",
-    level: "advanced",
-    ageRange: "9-11",
+    difficulty: "hard",
+    age_range: "9-11",
     activities: [],
-    targetRange: [1, 100],
-    totalPoints: 200,
+    target_range: [1, 100],
+    total_points: 200,
     template: false
   }
 ]

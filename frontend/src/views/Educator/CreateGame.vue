@@ -9,10 +9,10 @@ const gameData = ref<Partial<Game>>({
   description: '',
   activities: [],
   image: '',
-  level: '',
-  ageRange: '',
-  targetRange: [0, 0],
-  totalPoints: 0,
+  age_range: '',
+  difficulty: "easy" as 'easy' | 'medium' | 'hard',
+  target_range: [0, 0],
+  total_points: 0,
   template: false
 })
 
@@ -46,17 +46,17 @@ const addActivity = () => {
   if (currentActivity.value && isActivityValid()) {
     gameData.value.activities?.push({ ...currentActivity.value } as Activity)
     resetActivityForm()
-    updateTotalPoints()
+    updatetotal_points()
   }
 }
 
 const removeActivity = (index: number) => {
   gameData.value.activities?.splice(index, 1)
-  updateTotalPoints()
+  updatetotal_points()
 }
 
-const updateTotalPoints = () => {
-  gameData.value.totalPoints = gameData.value.activities?.reduce(
+const updatetotal_points = () => {
+  gameData.value.total_points = gameData.value.activities?.reduce(
     (sum, activity) => sum + activity.points, 0
   ) || 0
 }
@@ -101,7 +101,7 @@ const handleSubmit = () => {
         </div>
         <div>
           <label class="block text-sm font-medium mb-1">Level</label>
-          <select v-model="gameData.level" class="w-full p-2 border rounded">
+          <select v-model="gameData.difficulty" class="w-full p-2 border rounded">
             <option value="beginner">Beginner</option>
             <option value="intermediate">Intermediate</option>
             <option value="advanced">Advanced</option>
@@ -109,7 +109,7 @@ const handleSubmit = () => {
         </div>
         <div>
           <label class="block text-sm font-medium mb-1">Age Range</label>
-          <input v-model="gameData.ageRange" type="text" class="w-full p-2 border rounded" placeholder="e.g., 8-10" />
+          <input v-model="gameData.age_range" type="text" class="w-full p-2 border rounded" placeholder="e.g., 8-10" />
         </div>
         <div>
           <label class="block text-sm font-medium mb-1">Description</label>
@@ -187,7 +187,7 @@ const handleSubmit = () => {
         </div>
       </div>
       <div class="mt-4 text-right">
-        <p class="font-medium">Total Points: {{ gameData.totalPoints }}</p>
+        <p class="font-medium">Total Points: {{ gameData.total_points }}</p>
       </div>
     </div>
 

@@ -17,10 +17,10 @@ const error = ref('')
 //     description: "Learn addition and subtraction by balancing weights on a scale",
 //     image: "https://placehold.co/600x400/orange/white?text=Balance+Scale",
 //     level: "beginner",
-//     ageRange: "6-8",
+//     age_range: "6-8",
 //     activities: [], // Initialize as empty array
-//     targetRange: [1, 20],
-//     totalPoints: 100,
+//    target_range: [1, 20],
+//     total_points: 100,
 //     template: false
 //   },
 //   {
@@ -29,10 +29,10 @@ const error = ref('')
 //     description: "Slice through numbers to master multiplication tables",
 //     image: "https://placehold.co/600x400/purple/white?text=Number+Ninja",
 //     level: "intermediate",
-//     ageRange: "8-10",
+//     age_range: "8-10",
 //     activities: [],
-//     targetRange: [1, 50],
-//     totalPoints: 150,
+//    target_range: [1, 50],
+//     total_points: 150,
 //     template: false
 //   },
 //   {
@@ -41,10 +41,10 @@ const error = ref('')
 //     description: "Build and compare fractions in this fun factory game",
 //     image: "https://placehold.co/600x400/blue/white?text=Fraction+Factory",
 //     level: "advanced",
-//     ageRange: "9-11",
+//     age_range: "9-11",
 //     activities: [],
-//     targetRange: [1, 100],
-//     totalPoints: 200,
+//    target_range: [1, 100],
+//     total_points: 200,
 //     template: false
 //   }
 // ]
@@ -101,7 +101,7 @@ onMounted(() => {
             <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
             <div class="absolute bottom-4 left-4">
               <span class="bg-amber-500 text-white px-3 py-1 rounded-full text-sm font-bubblegum">
-                Level {{ game.level }}
+                Difficulty {{ game.difficulty }}
               </span>
             </div>
           </div>
@@ -112,7 +112,7 @@ onMounted(() => {
 
             <div class="flex justify-between items-center">
               <span class="text-sm text-gray-500 font-bubblegum">
-                Age {{ game.ageRange }}
+                Age {{ game.age_range }}
               </span>
               <button
                 class="bg-amber-500 hover:bg-amber-600 text-white font-bubblegum py-2 px-4 rounded-lg transition-colors duration-300"
