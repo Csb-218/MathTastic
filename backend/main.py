@@ -60,8 +60,7 @@ if __name__ == "__main__":
     import uvicorn
     uvicorn.run(
         "main:app",
-        host="localhost",
-        port=8000,
+        port=os.getenv("PORT") or 8000,
         reload=True
     )
 
