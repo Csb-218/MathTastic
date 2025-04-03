@@ -10,6 +10,11 @@ import { SignUser, LoginUser } from '@/services/AuthService'
 import googleIcon from '@/assets/icons/google-icon.svg'
 // types
 import type { DecodedToken } from "@/types/miscellaneous"
+// store
+import { useAuthStore } from "@/stores/authentication"
+
+import { getSessionCookie } from "@/lib/helpers"
+
 
 
 const isLogin = ref(true)
@@ -20,6 +25,7 @@ const errorMessage = ref('')
 
 const { replace } = useRouter()
 const provider = new GoogleAuthProvider();
+const { init } = useAuthStore()
 
 const toggleForm = () => {
   isLogin.value = !isLogin.value
@@ -47,9 +53,10 @@ const handleGoogle = async () => {
       }
 
       LoginUser(user, idToken)
-        .then((res) => {
-          console.log(res)
-          replace('/student')
+        .then(() => {
+          const sessionCookie = getSessionCookie()
+          if (sessionCookie) init(sessionCookie)
+          replace('/educator')
         })
         .catch((error) => console.error(error))
     }
@@ -71,7 +78,9 @@ const handleGoogle = async () => {
       // save user to database
       await SignUser(user, idToken)
         .then(() => {
-          replace('/student')
+          const sessionCookie = getSessionCookie()
+          if (sessionCookie) init(sessionCookie)
+          replace('/educator')
         })
         .catch((err) => console.error(err))
     }
@@ -88,7 +97,6 @@ const handleSubmit = async () => {
   if (isLogin.value) {
 
     try {
-      console.log(email.value, password.value)
       const userCredential = await signInWithEmailAndPassword(auth, email.value, password.value)
 
       const user = {
@@ -98,8 +106,18 @@ const handleSubmit = async () => {
 
       const idToken = (await userCredential.user.getIdTokenResult()).token
 
+      console.log(user, idToken, userCredential)
+
       // login the user
-      if (idToken) LoginUser(user, idToken).then(() => replace('/educator')).catch(error => console.error(error))
+      if (idToken) LoginUser(user, idToken)
+        .then(
+          () => {
+            const sessionCookie = getSessionCookie()
+            if (sessionCookie) init(sessionCookie)
+            replace('/educator')
+          }
+        )
+        .catch(error => console.error(error))
 
     } catch (error: unknown) {
 
@@ -136,6 +154,8 @@ const handleSubmit = async () => {
     // save user to database
     await SignUser(user, idToken)
       .then(() => {
+        const sessionCookie = getSessionCookie()
+        if (sessionCookie) init(sessionCookie)
         replace('/educator')
       })
       .catch((err) => console.error(err))
