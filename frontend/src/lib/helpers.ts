@@ -1,10 +1,26 @@
-import appleIcon from '@/assets/game/apple.svg'
-import bananaIcon from '@/assets/game/banana.svg'
-import orangeIcon from '@/assets/game/orange.svg'
+import {
+  appleIcon,
+  bananaIcon,
+  orangeIcon,
+  beetrootIcon,
+  grapesIcon,
+  strawberryIcon,
+  watermelonIcon,
+  mushroomIcon,
+} from '@/assets/game'
 import type { WeighingObject } from '@/types/game'
 import type { Activity } from '@/types/activity'
 
-const fruitIcons = [appleIcon, bananaIcon, orangeIcon]
+const fruitIcons = [
+  appleIcon,
+  bananaIcon,
+  orangeIcon,
+  beetrootIcon,
+  grapesIcon,
+  strawberryIcon,
+  watermelonIcon,
+  mushroomIcon,
+]
 
 export function getSessionCookie(): string | undefined {
   const cookies = document.cookie.split(';')
@@ -15,30 +31,30 @@ export function getSessionCookie(): string | undefined {
 // create weighing objects from activity
 export function createWeighingObjectsFromActivity(activity: Activity): WeighingObject[] {
   const weighingObjects: WeighingObject[] = []
+
+  // Create a map to store weight-to-icon mappings
   const weightToImageMap = new Map<number, string>()
 
   // Process each addend and create corresponding objects
   activity.addends.forEach((weight, index) => {
-    // If this weight hasn't been assigned an image yet, assign one
-    if (!weightToImageMap.has(weight)) {
-      const unusedIcons = fruitIcons.filter(
-        (icon) => !Array.from(weightToImageMap.values()).includes(icon),
-      )
+    // Get or assign an icon for this weight
+    let iconToUse: string
 
-      // If we've used all icons, start over with the first one
-      const iconToUse =
-        unusedIcons.length > 0
-          ? unusedIcons[0]
-          : fruitIcons[weightToImageMap.size % fruitIcons.length]
-
+    if (weightToImageMap.has(weight)) {
+      // Use existing icon for same weights
+      iconToUse = weightToImageMap.get(weight)!
+    } else {
+      // Assign new icon from the pool
+      iconToUse = fruitIcons[weightToImageMap.size % fruitIcons.length]
       weightToImageMap.set(weight, iconToUse)
     }
 
+    // Create weighing object
     const obj: WeighingObject = {
       id: `obj-${index}`,
       weight,
       type: 'fruit',
-      image: weightToImageMap.get(weight)!,
+      image: iconToUse,
       location: 'available',
     }
     weighingObjects.push(obj)
