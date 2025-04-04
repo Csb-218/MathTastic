@@ -32,7 +32,7 @@ async def get_games():
             game_response = GameResponse(
                 id=str(game.id),
                 title=game.title,
-                creator=str(game.creator.id),
+                creator=str(game.creator),
                 activities=activities,  # Use fetched activities
                 target_range=game.target_range,
                 max_time_allowed=game.max_time_allowed,
@@ -173,11 +173,13 @@ async def delete_game(game_id: str):
     await game.delete()
     return {"message": "Game deleted successfully"}
 
-@router.post("/{game_id}/add_activity", response_model=GameResponse)
+@router.patch("/{game_id}/activities", response_model=GameResponse)
 async def add_activity_to_game(
     game_id: str = Path(..., description="The ID of the game to update"),
     activities: AddActivities = Body(..., description="Activities to add to the game")
 ):
+    print(1)
+    print(activities)
     game = await Game.get(validate_object_id(game_id,"game_id"))
     if not game:
         raise HTTPException(status_code=404, detail="Game not found")
@@ -196,6 +198,7 @@ async def add_activity_to_game(
             await game.update_stats()
         
         await game.save()
+        print(22)
         return GameResponse(
             id=str(game.id),
             title=game.title,
