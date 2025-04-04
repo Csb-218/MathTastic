@@ -1,15 +1,15 @@
-from beanie import Document, Link
 from typing import List
+from beanie import Document, Link
 from pydantic import Field, constr
 from app.models.activity import Activity
-from app.models.user import User 
+from app.models.user import User
 
 class Game(Document):
     title: constr(max_length=50) = Field(..., description="Game title, max 50 characters")
     creator: Link[User] = Field(..., description="Reference to creator user")
-    activities: List[Link[Activity]] = Field(
+    activities: List[Activity] = Field( 
         default_factory=list,
-        description="List of activity references"
+        description="List of full activity documents"
     )
     target_range: List[int] = Field(
         default_factory=lambda: [0, 0],
@@ -41,7 +41,7 @@ class Game(Document):
         ]
 
     async def update_stats(self):
-        """Update game statistics based on linked activities."""
+        """Update game statistics based on embedded activities."""
         if not self.activities:
             self.target_range = [0, 0]
             self.max_time_allowed = 0
@@ -54,8 +54,6 @@ class Game(Document):
             total_points = 0
 
             for activity in self.activities:
-                if not activity:
-                    continue
                 if activity.target is not None:
                     targets.append(activity.target)
                 if activity.time_limit is not None:
