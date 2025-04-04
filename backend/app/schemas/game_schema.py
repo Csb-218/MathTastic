@@ -16,11 +16,25 @@ class GameUpdate(BaseModel):
     activity_ids: Optional[List[str]] = None  # Accept IDs in update request
     template: Optional[bool] = False
 
+class AddActivities(BaseModel):
+    """Schema for adding activities to a game"""
+    activity_ids: List[str] = Field(
+        default_factory=list,
+        description="List of activity IDs to add to the game"
+    )
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "activity_ids": ["activity_id_1", "activity_id_2"]
+            }
+        }
+
 class GameResponse(BaseModel):
     id: str
     title: str
     creator: str
-    activities: List[Activity]  # Return full activities
+    activities: List[Activity] 
     target_range: List[int]
     max_time_allowed: int
     total_points: int
