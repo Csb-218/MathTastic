@@ -1,9 +1,10 @@
 from typing import List
-from fastapi import APIRouter, HTTPException, Path
+from beanie import Link
+from fastapi import APIRouter, HTTPException, Path, Body
 from app.models.game import Game
 from app.models.activity import Activity
 from app.models.user import User
-from app.schemas.game_schema import GameCreate, GameUpdate, GameResponse
+from app.schemas.game_schema import GameCreate, GameUpdate, GameResponse, AddActivities
 from app.utils.helpers import validate_object_id
 
 router = APIRouter(
@@ -15,21 +16,33 @@ router = APIRouter(
 @router.get("/", response_model=List[GameResponse])
 async def get_games():
     try:
-        games = await Game.find_all(fetch_links=True).to_list()
-        print(games)
-        return [
-            GameResponse(
-            id=str(game.id),
-            title=game.title,
-            creator= str(game.creator),
-            activities=list(game.activities),
-            target_range=game.target_range,
-            max_time_allowed=game.max_time_allowed,
-            total_points=game.total_points,
-            template=game.template
-        )
-            for game in games
-        ]
+        # Fetch all games with linked documents
+        games = await Game.find_all().to_list()
+        
+        responses = []
+        for game in games:
+            # Ensure activities are fetched
+            activities = []
+            for activity_link in game.activities:
+                activity = await Activity.get(activity_link.id)
+                if activity:
+                    activities.append(activity)
+            
+            # Create response with fetched activities
+            game_response = GameResponse(
+                id=str(game.id),
+                title=game.title,
+                creator=str(game.creator.id),
+                activities=activities,  # Use fetched activities
+                target_range=game.target_range,
+                max_time_allowed=game.max_time_allowed,
+                total_points=game.total_points,
+                template=game.template
+            )
+            responses.append(game_response)
+            
+        return responses
+
     except Exception as e:
         print(f"Error retrieving games: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -102,8 +115,7 @@ async def update_game(
     game_id: str = Path(..., description="The ID of the game to update"),
     game_update: GameUpdate = None
 ):
-    object_id = validate_object_id(game_id,"game_id")
-    game = await Game.get(object_id)
+    game = await Game.get(validate_object_id(game_id, "game_id"))
     if not game:
         raise HTTPException(status_code=404, detail="Game not found")
     
@@ -111,21 +123,76 @@ async def update_game(
         if game_update.title:
             game.title = game_update.title
 
-        if game_update.template:
+        if game_update.template is not None:
             game.template = game_update.template
         
         if game_update.activity_ids:
+            # Create new activities list with full Activity instances
             activities = []
             for activity_id in game_update.activity_ids:
-                object_id = validate_object_id(activity_id,"activity_id")
-                activity = await Activity.get(object_id)
+                activity = await Activity.get(validate_object_id(activity_id, "activity_id"))
                 if not activity:
                     raise HTTPException(
-                        status_code=404, 
+                        status_code=404,
                         detail=f"Activity with id {activity_id} not found"
                     )
-                activities.append(activity)  # Store full activity document
+                # Add the Activity instance directly
+                activities.append(activity)
+            
+            # Update game's activities and stats
             game.activities = activities
+            await game.update_stats()
+        
+        # Save changes
+        await game.save()
+        
+        # Fetch fresh game to ensure all data is properly loaded
+        updated_game = await Game.get(game.id, fetch_links=True)
+
+        return GameResponse(
+            id=str(updated_game.id),
+            title=updated_game.title,
+            creator=str(updated_game.creator.id),
+            activities=updated_game.activities,  # Return full activities
+            target_range=updated_game.target_range,
+            max_time_allowed=updated_game.max_time_allowed,
+            total_points=updated_game.total_points,
+            template=updated_game.template
+        )
+
+    except Exception as e:
+        print(f"Error updating game: {e}")
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.delete("/{game_id}")
+async def delete_game(game_id: str):
+    game = await Game.get(validate_object_id(game_id,"game_id"))
+    if not game:
+        raise HTTPException(status_code=404, detail="Game not found")
+    
+    await game.delete()
+    return {"message": "Game deleted successfully"}
+
+@router.post("/{game_id}/add_activity", response_model=GameResponse)
+async def add_activity_to_game(
+    game_id: str = Path(..., description="The ID of the game to update"),
+    activities: AddActivities = Body(..., description="Activities to add to the game")
+):
+    game = await Game.get(validate_object_id(game_id,"game_id"))
+    if not game:
+        raise HTTPException(status_code=404, detail="Game not found")
+    
+    try:
+
+        for activity_id in activities.activity_ids:
+            activity = await Activity.get(validate_object_id(activity_id,"activity_id"))
+            if not activity:
+                raise HTTPException(
+                    status_code=404,
+                    detail="Activity with id {activity_id} not found"
+                )
+            print(activity, 150)
+            game.activities.append(activity) 
             await game.update_stats()
         
         await game.save()
@@ -142,12 +209,3 @@ async def update_game(
     except Exception as e:
         print(f"Error updating game: {e}")
         raise HTTPException(status_code=400, detail=str(e))
-
-@router.delete("/{game_id}")
-async def delete_game(game_id: str):
-    game = await Game.get(validate_object_id(game_id,"game_id"))
-    if not game:
-        raise HTTPException(status_code=404, detail="Game not found")
-    
-    await game.delete()
-    return {"message": "Game deleted successfully"}
