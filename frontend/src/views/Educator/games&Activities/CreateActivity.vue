@@ -49,11 +49,9 @@ const isValid = computed(() => {
 const updateGame = async () => {
   if (!isValid.value) return
 
-  console.log(newActivity.value)
-
   try {
     const activity = await createActivity(newActivity.value)
-
+    await addActivityToGame(gameId, activity.id)
 
   } catch (error) {
     console.error("Error creating activity:", error)
@@ -87,7 +85,6 @@ const updateGame = async () => {
             <div>
               <label class="block text-sm font-medium text-gray-700">Target Number (Even Only)</label>
               <input type="number" v-model="newActivity.target" :step="2" min="2"
-                @input="e => { const target = e.target as HTMLInputElement; if (target) newActivity.target = Math.floor(+target.value / 2) * 2 }"
                 class="mt-1 p-1 rounded-md border-amber-300 outline-amber-300 border-[0.5px] w-1/5 block">
             </div>
 
@@ -134,7 +131,7 @@ const updateGame = async () => {
               Create Activity
             </button>
             <p v-if="!isValid" class="mt-2 text-sm text-red-500">
-              Please ensure all fields are filled correctly and target number is even
+              {{ isValid ? '' : 'Please fill in all required fields correctly.' }}
             </p>
           </div>
         </form>
