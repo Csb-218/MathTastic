@@ -8,6 +8,12 @@ export const useBalanceScaleStore = defineStore('balanceScale', {
     isPlaying: false,
     isFullScreen: false,
     showMessage: false,
+    dragInfo: null as {
+      obj: WeighingObject
+      startX: number
+      startY: number
+      element: HTMLElement
+    } | null,
   }),
   getters: {
     //  pan objects
@@ -62,6 +68,7 @@ export const useBalanceScaleStore = defineStore('balanceScale', {
       event.dataTransfer?.setData('objId', obj.id)
       SoundService.play('tap')
     },
+
     checkWinCondition() {
       if (this.hasWon) {
         this.showMessage = true
@@ -139,6 +146,107 @@ export const useBalanceScaleStore = defineStore('balanceScale', {
         await document.exitFullscreen()
         this.isFullScreen = false
       }
+    },
+    handleTouchStart(event: TouchEvent, obj: WeighingObject) {
+      const element = event.target as HTMLElement
+      const touch = event.touches[0]
+
+      event.preventDefault()
+      SoundService.play('tap')
+
+      // Store drag info
+      this.dragInfo = {
+        obj,
+        startX: touch.clientX,
+        startY: touch.clientY,
+        element,
+      }
+
+      // Create and style clone
+      const clone = element.cloneNode(true) as HTMLElement
+      clone.id = 'dragging-clone'
+      Object.assign(clone.style, {
+        position: 'fixed',
+        left: `${touch.clientX - 15}px`, // Center horizontally (30px/2)
+        top: `${touch.clientY - 15}px`, // Center vertically (30px/2)
+        width: '30px',
+        height: '30px',
+        zIndex: '9999',
+        pointerEvents: 'none',
+        opacity: '1',
+        transform: 'scale(1.1)',
+        boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
+        borderRadius: '50%',
+        transition: 'none',
+      })
+
+      document.body.appendChild(clone)
+      element.style.opacity = '0.4' // Make original semi-transparent
+    },
+
+    handleTouchMove(event: TouchEvent) {
+      if (!this.dragInfo) return
+      event.preventDefault()
+
+      const touch = event.touches[0]
+      const clone = document.getElementById('dragging-clone')
+
+      if (clone) {
+        // Update clone position to follow finger precisely
+        clone.style.left = `${touch.clientX - 15}px`
+        clone.style.top = `${touch.clientY - 15}px`
+      }
+
+      // Update potential drop target highlighting
+      const elementUnderTouch = document.elementFromPoint(
+        touch.clientX,
+        touch.clientY,
+      ) as HTMLElement
+      const pan = elementUnderTouch?.closest('.pan') as HTMLElement
+
+      document.querySelectorAll('.pan').forEach((p) => {
+        const panElement = p as HTMLElement
+        panElement.classList.remove('drop-target')
+        panElement.style.transform = 'scale(1)'
+      })
+
+      if (pan) {
+        pan.classList.add('drop-target')
+        pan.style.transform = 'scale(1.05)' // Add slight scale effect
+      }
+    },
+
+    handleTouchEnd(event: TouchEvent) {
+      if (!this.dragInfo) return
+      event.preventDefault()
+
+      // Reset original element opacity
+      this.dragInfo.element.style.opacity = '1'
+
+      const touch = event.changedTouches[0]
+      const clone = document.getElementById('dragging-clone')
+      clone?.remove()
+
+      // Get drop target
+      const elementUnderTouch = document.elementFromPoint(touch.clientX, touch.clientY)
+      const pan = elementUnderTouch?.closest('.pan')
+
+      // Handle drop
+      if (pan) {
+        const panType = pan.classList.contains('left-pan') ? 'left' : 'right'
+        this.dragInfo.obj.location = panType
+        SoundService.play('drop')
+        this.checkWinCondition()
+      }
+
+      // Reset pan styles
+      document.querySelectorAll('.pan').forEach((p) => {
+        const panElement = p as HTMLElement
+        panElement.classList.remove('drop-target')
+        panElement.style.transform = 'scale(1)'
+      })
+
+      this.dragInfo = null
     },
 
     // Initialize game objects
