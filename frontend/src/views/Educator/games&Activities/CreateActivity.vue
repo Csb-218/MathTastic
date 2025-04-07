@@ -5,8 +5,10 @@ import type { Activity } from '@/types/activity'
 import type { Game } from '@/types/game'
 import { Button } from "@/components/ui/button"
 import { useToast } from '@/components/ui/toast/use-toast'
+import { Toaster } from '@/components/ui/toast'
 import BalanceScalePreview from '@/components/game_previews/BalanceScalePreview.vue'
-import { createActivity, addActivityToGame, getGameById } from "@/services/GameService"
+import AlertDialogDelete from "@/components/blocks/Overlays/AlertDelete.vue"
+import { createActivity, addActivityToGame, getGameById, deleteActivity, removeActivityFromGame } from "@/services/GameService"
 
 
 const route = useRoute()
@@ -114,6 +116,26 @@ const handleSelectActivity = (activity: Activity) => {
 
 }
 
+const handleDeleteActivity = async () => {
+  if (!selectedActivity.value) return
+
+  try {
+    await deleteActivity(selectedActivity.value._id)
+    await removeActivityFromGame(gameId, selectedActivity.value._id)
+  } catch (error) {
+    console.error("Error deleting activity:", error)
+  } finally {
+    toast({
+      title: 'Deleted',
+      description: 'Activity deleted successfully.',
+      duration: 2000,
+      variant: "default"
+    });
+    selectedActivity.value = null
+    fetchGameActivities()
+  }
+}
+
 const updateGame = async () => {
   if (!isValid.value) return
 
@@ -142,7 +164,10 @@ const updateGame = async () => {
     selectedActivity.value = null
 
     toast({
-      description: 'Your message has been sent.',
+      title: 'Activity Created',
+      description: 'Added activity successfully.',
+      duration: 2000,
+      variant: "default"
     });
 
     fetchGameActivities()
@@ -185,6 +210,7 @@ onMounted(() => fetchGameActivities())
 
 <template>
   <div class="container mx-auto px-4 py-8 my-4">
+    <Toaster class="border-green-400" />
 
     <div class="flex justify-between items-center mb-8">
       <h1 class="text-3xl font-bubblegum text-gray-800">Create Balance Game Activity</h1>
@@ -205,7 +231,10 @@ onMounted(() => fetchGameActivities())
     <div class="flex gap-8">
       <!-- Form section - 40% width -->
       <div class="w-[40%]">
-        <form @submit.prevent="updateGame" class="bg-white rounded-xl shadow-lg p-6 space-y-6">
+        <form @submit.prevent="updateGame" class="bg-white rounded-xl shadow-lg p-6 space-y-6 relative">
+          <!-- delete dialog button -->
+          <AlertDialogDelete :selectedActivity="selectedActivity" :handleDeleteActivity="handleDeleteActivity" />
+
           <div class="space-y-4">
             <h2 class="text-xl font-semibold text-gray-800 mb-4">Basic Settings</h2>
             <div>
