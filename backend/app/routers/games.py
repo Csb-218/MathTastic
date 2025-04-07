@@ -178,8 +178,6 @@ async def add_activity_to_game(
     game_id: str = Path(..., description="The ID of the game to update"),
     activities: AddActivities = Body(..., description="Activities to add to the game")
 ):
-    print(1)
-    print(activities)
     game = await Game.get(validate_object_id(game_id,"game_id"))
     if not game:
         raise HTTPException(status_code=404, detail="Game not found")
@@ -193,12 +191,39 @@ async def add_activity_to_game(
                     status_code=404,
                     detail="Activity with id {activity_id} not found"
                 )
-            print(activity, 150)
             game.activities.append(activity) 
             await game.update_stats()
         
         await game.save()
-        print(22)
+        return GameResponse(
+            id=str(game.id),
+            title=game.title,
+            creator=str(game.creator),
+            activities=game.activities,  # Return full activities
+            target_range=game.target_range,
+            max_time_allowed=game.max_time_allowed,
+            total_points=game.total_points,
+            template=game.template
+        )
+    except Exception as e:
+        print(f"Error updating game: {e}")
+        raise HTTPException(status_code=400, detail=str(e))
+    
+@router.delete("/{game_id}/activities/{activity_id}", response_model=GameResponse)
+async def remove_activity_from_game(
+    game_id: str = Path(..., description="The ID of the game to update"),
+    activity_id: str = Path(..., description="The ID of the activity to remove")
+):
+    game = await Game.get(validate_object_id(game_id,"game_id"))
+    if not game:
+        raise HTTPException(status_code=404, detail="Game not found")
+    
+    try:
+        # Remove activity from the game's activities list
+        game.activities = [activity for activity in game.activities if str(activity.id) != activity_id]
+        await game.update_stats()
+        await game.save()
+
         return GameResponse(
             id=str(game.id),
             title=game.title,
