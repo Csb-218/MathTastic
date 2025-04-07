@@ -1,4 +1,5 @@
 export interface Activity {
+  _id: string
   level: number
   target: number
   addends: number[]
