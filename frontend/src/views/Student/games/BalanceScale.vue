@@ -320,7 +320,8 @@ onUnmounted(() => {
       </div>
 
       <LevelComplete v-if="showLevelComplete" :show="showLevelComplete" :message="successMessage"
-        :character-src="congratulations_character" @complete="handleLevelComplete" />
+        :character-src="congratulations_character" @complete="handleLevelComplete"
+        class="absolute inset-0 h-full w-full" />
 
     </template>
 
