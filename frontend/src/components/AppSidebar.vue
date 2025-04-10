@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { SidebarProps } from '@/components/ui/sidebar/'
-
+import { useAuthStore } from "@/stores/authStore"
 import NavMain from '@/components/NavMain.vue'
 import NavUser from '@/components/NavUser.vue'
 import {
@@ -13,7 +13,6 @@ import {
 
 import {
   AudioWaveform,
-
   Command,
   Frame,
   GalleryVerticalEnd,
@@ -34,11 +33,13 @@ const props = withDefaults(defineProps<SidebarProps>(), {
   collapsible: 'icon',
 })
 
+const { email, name } = useAuthStore()
+
 // This is sample data.
 const data = {
   user: {
-    name: 'shadcn',
-    email: 'm@example.com',
+    name: name,
+    email: email,
     avatar: '/avatars/shadcn.jpg',
   },
   teams: [

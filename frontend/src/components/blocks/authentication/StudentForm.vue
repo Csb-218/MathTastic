@@ -3,6 +3,8 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { jwtDecode } from 'jwt-decode'
 import { auth } from '@/config/firebaseConfig'
+import { Button } from '@/components/ui/button'
+import { Loader2, } from 'lucide-vue-next'
 import { createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword } from 'firebase/auth'
 // services
 import { SignUser, LoginUser } from '@/services/AuthService'
@@ -11,11 +13,11 @@ import googleIcon from '@/assets/icons/google-icon.svg'
 // types
 import type { DecodedToken } from "@/types/miscellaneous"
 // store
-import { useAuthStore } from "@/stores/authentication"
+import { useAuthStore } from "@/stores/authStore"
 
 import { getSessionCookie } from "@/lib/helpers"
 
-
+const loading = ref(false)
 const isLogin = ref(true)
 const email = ref('')
 const password = ref('')
@@ -40,7 +42,7 @@ const clearError = () => {
 
 const handleGoogle = async () => {
   try {
-
+    loading.value = true
     const userCredential = await signInWithPopup(auth, provider)
     const idToken = (await userCredential.user.getIdTokenResult()).token
 
@@ -84,6 +86,9 @@ const handleGoogle = async () => {
 
   } catch (error: unknown) {
     console.error(error)
+  } finally {
+    loading.value = false
+    return
   }
 
 }
@@ -94,6 +99,7 @@ const handleSubmit = async () => {
   if (isLogin.value) {
 
     try {
+      loading.value = true
 
       const userCredential = await signInWithEmailAndPassword(auth, email.value, password.value)
 
@@ -123,14 +129,17 @@ const handleSubmit = async () => {
         errorMessage.value = 'An error occurred. Please try again.'
       }
       console.error(firebaseError)
+    } finally {
+      loading.value = false
+      return
     }
-    return
+
 
   }
 
   // signup flow
   try {
-
+    loading.value = true
     const userCredential = await createUserWithEmailAndPassword(auth, email.value, password.value)
 
     const idToken = await userCredential.user.getIdToken()
@@ -164,6 +173,9 @@ const handleSubmit = async () => {
     }
     console.error(firebaseError)
 
+  } finally {
+    loading.value = false
+    return
   }
 
 
@@ -217,10 +229,12 @@ const handleSubmit = async () => {
 
       <div class="space-y-1 mt-4">
         <!-- Submit Button -->
-        <button type="submit"
-          class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-amber-600 hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 ">
-          {{ isLogin ? 'Sign In' : 'Create Account' }}
-        </button>
+        <Button type="submit" :disabled="loading"
+          className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-amber-600 hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 ">
+          <Loader2 v-if="loading" class="animate-spin mr-2" />
+          {{ isLogin && !loading ? 'Sign In' : 'Create Account' }}
+        </Button>
+
 
         <!-- Divider -->
         <div class="relative my-4">
@@ -233,11 +247,13 @@ const handleSubmit = async () => {
         </div>
 
         <!-- Login via Google -->
-        <button type="button" @click="handleGoogle"
+        <Button type="button" @click="handleGoogle" :disabled="loading"
           class="w-full flex items-center justify-center gap-2 py-2 px-4 rounded-md border border-gray-300 shadow-sm text-sm font-medium text-gray-600 bg-white hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2">
+          <Loader2 v-if="loading" class="animate-spin ml-2" />
           <img :src="googleIcon" alt="Google Icon" class="w-5 h-5" />
-          {{ !isLogin ? "Sign up with Google" : "Sign in with Google" }}
-        </button>
+          {{ !isLogin && !loading ? "Sign up with Google" : "Sign in with Google" }}
+
+        </Button>
         <!-- Toggle Form -->
         <div class="text-center mt-5">
           <button type="button" class="text-sm text-amber-600 hover:text-amber-500" @click="toggleForm">

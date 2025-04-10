@@ -1,3 +1,187 @@
+<script setup lang="ts">
+import { ref, onMounted, onUnmounted, watch, computed } from 'vue'
+import { useEventListener } from '@vueuse/core'
+import { storeToRefs } from 'pinia'
+import type { Game } from '@/types/game'
+import type { game_progress } from '@/types/progress'
+import { createWeighingObjectsFromActivity } from '@/lib/helpers'
+import { doc, onSnapshot } from 'firebase/firestore'
+import { db } from '@/config/firebaseConfig'
+import { updateProgress, resetProgress } from '@/services/FireStoreService'
+//store
+import { useBalanceScaleStore } from '@/stores/Gameplay/BalanceScale/balanceScale'
+import { useAuthStore } from '@/stores/authStore'
+// assets
+import { Minimize } from 'lucide-vue-next';
+import OverLay from '@/components/blocks/game/OverLay.vue'
+import { exit, level_board, music, nut, reload, stand, points_board } from "@/assets/game"
+import { SoundService } from '@/services/SoundService'
+import LevelComplete from '@/components/blocks/game/LevelComplete.vue';
+import { congratulations_character } from '@/assets/game'
+
+// props
+const { currentGame, progress_id } = defineProps<{
+  currentGame: Game
+  progress_id: string
+}>()
+
+// States
+const currentLevel = ref<number>(1)
+const totalPoints = ref<number>(0)
+const gameContainer = ref<HTMLElement | null>(null)
+const loading = ref(true)
+const error = ref<string | null>(null)
+// viewport check
+const isMobileView = ref(window.innerWidth < 768)
+
+
+// store states , getters and actions
+const {
+  tiltAngle,
+  leftPanObjects,
+  rightPanObjects,
+  leftWeight,
+  rightWeight,
+  availableObjects,
+  showMessage,
+  isPlaying,
+  hasWon,
+  isFullScreen } = storeToRefs(useBalanceScaleStore())
+
+const {
+  initGameObjects,
+  fullScreenChange,
+  exitGame,
+  startGame,
+  resetGame,
+  drop,
+  drag,
+  allowDrop,
+  toggleFullscreen,
+  handleTouchStart,
+  handleTouchMove,
+  handleTouchEnd
+} = useBalanceScaleStore()
+
+const { uid } = storeToRefs(useAuthStore())
+
+
+// Methods
+
+// resize
+const handleResize = () => {
+  isMobileView.value = window.innerWidth < 768
+}
+// restart game
+const restartGame = async () => {
+  await resetProgress(uid.value, progress_id)
+  console.log("restart game successfully")
+}
+
+// Fetch game state
+const fetchGameState = async () => {
+
+  try {
+
+    onSnapshot(doc(db, `/progress/${uid.value}/games_played/${progress_id}`), (doc) => {
+      const data = doc.data()
+      if (!data) {
+        console.error('No such document!')
+        return
+      }
+
+      currentLevel.value = data.current_level
+      totalPoints.value = data.points_gained
+
+      const level = data.current_level
+      const hasNextLevel = data.total_levels > level
+      const hasCompleted = (data.total_levels === level) && (data.points_gained === data.total_points)
+
+
+      if (hasNextLevel) {
+        // init next level
+        const activity_objects = createWeighingObjectsFromActivity(currentGame.activities[level])
+        initGameObjects(activity_objects)
+      }
+
+      if (hasCompleted) {
+        return
+      }
+
+    })
+
+  } catch (err) {
+    error.value = 'Failed to load game objects'
+    console.error(err)
+  } finally {
+    console.log('Objects loaded:', availableObjects)
+    loading.value = false
+  }
+}
+
+// computed values
+
+// points gained
+const pointsGained = computed(() => {
+  return currentGame.activities[currentLevel.value].points
+})
+// check if the game is completed
+const isCompleted = computed(() => {
+  const value = currentLevel.value === currentGame.activities.length
+  if (value) SoundService.play('win')
+  return value
+})
+
+// handle win
+watch(
+  hasWon,
+  async () => {
+    if (hasWon.value) {
+      showLevelComplete.value = true;
+    }
+  }
+)
+
+watch(showMessage, (newValue) => {
+  if (newValue) {
+    setTimeout(() => {
+      showMessage.value = false
+    }, 2000)
+  }
+})
+
+// reactive variables
+const showLevelComplete = ref(false);
+const successMessage = computed(() =>
+  ` ${currentGame.activities[currentLevel.value].success_feedback}!`
+);
+
+// handler for level completion
+const handleLevelComplete = async () => {
+  showLevelComplete.value = false;
+  const updates: Partial<game_progress> = {
+    points_gained: pointsGained.value,
+    current_level: ++currentLevel.value,
+  };
+  await updateProgress(uid.value, progress_id, updates);
+};
+
+// Event listeners
+useEventListener(window, 'resize', handleResize)
+useEventListener(document, 'fullscreenchange', fullScreenChange)
+
+
+onMounted(async () => {
+  await fetchGameState()
+})
+
+onUnmounted(() => {
+  exitGame()
+})
+
+
+</script>
+
 <template>
 
   <div ref="gameContainer"
@@ -30,22 +214,29 @@
         <Minimize class="w-10 h-10" />
       </button>
 
-      <!-- Level board -->
-      <span class="absolute top-4 left-1/2 -translate-x-1/2 p-2 text-white">
-        <img :src="level_board" alt="level_board" class="h-20" />
-        <p class="z-50 absolute top-1/3 left-1/2 -translate-x-1/2 font-bubblegum text-2xl ">Level {{ currentLevel }}
-        </p>
-      </span>
+      <div
+        class="absolute top-4 left-1/2 -translate-x-1/2 flex items-center gap-3 lg:ml-11 lg:scale-100 scale-90 ml-3 ">
+        <!-- Level board -->
+        <span class="relative">
+          <img :src="level_board" alt="level_board" class="h-20" />
+          <p class="z-50 absolute top-1/3 left-1/2 -translate-x-1/2 font-bubblegum lg:text-2xl text-xl text-white">
+            Level {{ currentLevel + 1 }}
+          </p>
+        </span>
 
-      <!-- balance status -->
-      <div v-if="showMessage"
-        class="absolute -translate-x-1/2 top-1/4 left-1/2 p-4 text-yellow-400 bg-slate-900/80 rounded-lg transform transition-all duration-300 ease-in-out"
-        :class="{ 'scale-100 opacity-100': showMessage, 'scale-95 opacity-0': !showMessage }">
-        <p class="font-bubblegum text-2xl">{{ balanceStatus }}</p>
+        <!-- Score board -->
+        <span class="relative">
+          <img :src="points_board" alt="score_board" class="h-20" />
+          <div class="z-50 absolute top-1/3 left-1/2 -translate-x-1/2 font-bubblegum text-white">
+            <p class="text-2xl -mt-1">{{ totalPoints }}</p>
+            <p class="text-xs -mt-2">points</p>
+          </div>
+        </span>
       </div>
 
       <!-- Balance scale -->
-      <div class=" flex justify-center my-5 absolute h-2/4 bottom-0 left-1/2 -translate-x-1/2"
+      <div
+        class=" flex justify-center my-5 absolute h-2/4 lg:bottom-0 bottom-6 lg:scale-100 scale-90 left-1/2 -translate-x-1/2"
         :class="isFullScreen ? ' w-full' : ' w-1/2'">
         <!-- Fixed vertical stand -->
         <img :src="stand" alt="stand" class="stand h-full drop-shadow-lg" />
@@ -61,7 +252,8 @@
             @drop="drop($event, 'left')" @dragover="allowDrop">
             <div v-for="obj in leftPanObjects" :key="obj.id" class="object-container">
               <div :id="obj.id" class="game-object w-[30px] h-[30px] rounded-full " draggable="true"
-                @dragstart="drag($event, obj)">
+                @dragstart="drag($event, obj)" @touchstart="(e: TouchEvent) => handleTouchStart(e, obj)"
+                @touchmove="(e: TouchEvent) => handleTouchMove(e)" @touchend="handleTouchEnd">
                 <img v-if="obj.image" :src="obj.image" :alt="obj.type" class="w-full h-full object-contain" />
               </div>
             </div>
@@ -72,7 +264,8 @@
             @drop="drop($event, 'right')" @dragover="allowDrop">
             <div v-for="obj in rightPanObjects" :key="obj.id" class="object-container">
               <div :id="obj.id" class="game-object w-[30px] h-[30px] rounded-full " draggable="true"
-                @dragstart="drag($event, obj)">
+                @dragstart="drag($event, obj)" @touchstart="(e: TouchEvent) => handleTouchStart(e, obj)"
+                @touchmove="(e: TouchEvent) => handleTouchMove(e)" @touchend="handleTouchEnd">
                 <img v-if="obj.image" :src="obj.image" :alt="obj.type" class="w-full h-full object-contain" />
               </div>
 
@@ -83,14 +276,20 @@
       </div>
 
       <!-- weighing objects -->
-      <div class="weights my-5 absolute left-1/2 -translate-x-1/2" :class="isFullScreen ? 'bottom-10' : 'bottom-4'">
-        <div class="flex justify-center gap-2 ">
-          <div v-for="obj in availableObjects" :key="obj.id"
-            class="object-container flex flex-col items-center m-1 cursor-grabbing">
-            <div :id="obj.id" class="game-object w-[30px] h-[30px] rounded-full " draggable="true"
-              @dragstart="drag($event, obj)">
-              <img v-if="obj.image" :src="obj.image" :alt="obj.type" class="w-full h-full object-contain" />
-              <p class="text-white font-bubblegum">{{ obj.weight }}</p>
+      <div class=" absolute left-1/2 -translate-x-1/2 transition-all duration-300 w-9/12  "
+        :class="isFullScreen ? 'bottom-6' : 'bottom-4'">
+        <div class="p-4 rounded-lg   ">
+          <div class="flex flex-wrap lg:gap-4 gap-2 justify-center">
+            <div v-for="obj in availableObjects" :key="obj.id"
+              class="flex flex-col items-center  rounded-lg p-2 cursor-grabbing hover:scale-105 transition-transform duration-200"
+              draggable="true" @dragstart="drag($event, obj)" @touchstart="(e: TouchEvent) => handleTouchStart(e, obj)"
+              @touchmove="(e: TouchEvent) => handleTouchMove(e)" @touchend="handleTouchEnd">
+
+              <div :id="obj.id" class="w-[30px] h-[30px] rounded-full select-none touch-none">
+                <img v-if="obj.image" :src="obj.image" :alt="obj.type" class="w-full h-full object-contain" />
+                <p class="text-white font-bubblegum text-center">{{ obj.weight }}</p>
+              </div>
+
             </div>
           </div>
         </div>
@@ -103,198 +302,33 @@
         <button @click="resetGame" class="p-2 text-white sm:left-4 sm:bottom-10 ">
           <img :src="reload" alt="reload" class="w-10 h-10" />
         </button>
-        <button @click="resetGame" class="p-2 text-white sm:left-4 sm:bottom-10 ">
-          <img :src="music" alt="reload" class="w-10 h-10" />
-        </button>
+
       </div>
 
       <!-- right controls -->
       <div class="flex flex-col justify-center gap-1 absolute right-5 bottom-14 ">
-        <button @click="resetGame" class=" p-2 text-white sm:left-4 sm:bottom-10 ">
+        <button @click="resetGame" class="p-2 text-white sm:left-4 sm:bottom-10 ">
+          <img :src="music" alt="reload" class="w-10 h-10" />
+        </button>
+        <!-- <button @click="resetGame" class=" p-2 text-white sm:left-4 sm:bottom-10 ">
           <img :src="more_games" alt="reload" class="w-10 h-10" />
         </button>
         <button @click="resetGame" class=" p-2 text-white sm:left-4 sm:bottom-10 ">
           <img :src="leaderboard" alt="reload" class="w-10 h-10" />
-        </button>
+        </button> -->
 
       </div>
 
+      <LevelComplete v-if="showLevelComplete" :show="showLevelComplete" :message="successMessage"
+        :character-src="congratulations_character" @complete="handleLevelComplete"
+        class="absolute inset-0 h-full w-full" />
 
     </template>
 
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch, computed } from 'vue'
-import { useEventListener } from '@vueuse/core'
-import { storeToRefs } from 'pinia'
-import type { Game } from '@/types/game'
-import type { game_progress } from '@/types/progress'
-import { createWeighingObjectsFromActivity } from '@/lib/helpers'
-import {
-  doc,
-  onSnapshot,
-} from 'firebase/firestore'
-import { db } from '@/config/firebaseConfig'
-import {
-  updateProgress,
-  resetProgress
-} from '@/services/FireStoreService'
-//store
-import { useBalanceScaleStore } from '@/stores/Gameplay/BalanceScale/balanceScale'
-import { useAuthStore } from '@/stores/authentication'
-// assets
-import { Minimize } from 'lucide-vue-next';
-import OverLay from '@/components/blocks/game/OverLay.vue'
-import { exit, leaderboard, level_board, more_games, music, nut, reload, stand } from "@/assets/game"
-import { SoundService } from '@/services/SoundService'
 
-
-// props
-const { currentGame, progress_id } = defineProps<{
-  currentGame: Game
-  progress_id: string
-}>()
-
-// States
-const currentLevel = ref<number>(0)
-const gameContainer = ref<HTMLElement | null>(null)
-const loading = ref(true)
-const error = ref<string | null>(null)
-// viewport check
-const isMobileView = ref(window.innerWidth < 768)
-
-
-// store states , getters and actions
-const {
-  tiltAngle,
-  leftPanObjects,
-  rightPanObjects,
-  leftWeight,
-  rightWeight,
-  availableObjects,
-  balanceStatus,
-  showMessage,
-  isPlaying,
-  hasWon,
-  isFullScreen } = storeToRefs(useBalanceScaleStore())
-
-const {
-  initGameObjects,
-  fullScreenChange,
-  exitGame,
-  startGame,
-  resetGame,
-  drop,
-  drag,
-  allowDrop,
-  toggleFullscreen
-} = useBalanceScaleStore()
-
-const { uid } = storeToRefs(useAuthStore())
-
-
-// Methods
-
-// resize
-const handleResize = () => {
-  isMobileView.value = window.innerWidth < 768
-}
-// restart game
-const restartGame = async () => {
-  await resetProgress(uid.value, progress_id)
-  console.log("restart game successfully")
-}
-
-// Fetch game state
-const fetchGameState = async () => {
-
-  try {
-
-    onSnapshot(doc(db, `/progress/${uid.value}/games_played/${progress_id}`), (doc) => {
-      const data = doc.data()
-      if (!data) {
-        console.error('No such document!')
-        return
-      }
-
-      currentLevel.value = data.current_level
-
-      const level = data.current_level
-      const hasNextLevel = data.total_levels > level
-      const hasCompleted = (data.total_levels === level) && (data.points_gained === data.total_points)
-
-
-      if (hasNextLevel) {
-        // init next level
-        const activity_objects = createWeighingObjectsFromActivity(currentGame.activities[level])
-        initGameObjects(activity_objects)
-      }
-
-      if (hasCompleted) {
-        console.log("Completed")
-        return
-      }
-
-    })
-
-  } catch (err) {
-    error.value = 'Failed to load game objects'
-    console.error(err)
-  } finally {
-    console.log('Objects loaded:', availableObjects)
-    loading.value = false
-  }
-}
-
-// computed values
-
-// points gained
-const pointsGained = computed(() => {
-  return currentGame.activities[currentLevel.value].points
-})
-// check if the game is completed
-const isCompleted = computed(() => {
-  const value = currentLevel.value === currentGame.activities.length
-  if (value) SoundService.play('win')
-  return value
-})
-
-// handle win
-watch(
-  hasWon,
-  async () => {
-    // check if user is student
-    if (hasWon.value) {
-
-      const updates: Partial<game_progress> = {
-        points_gained: pointsGained.value,
-        current_level: ++currentLevel.value,
-      }
-      // update current level
-      await updateProgress(uid.value, progress_id, updates)
-      console.log("updated")
-    }
-
-  }
-)
-
-// Event listeners
-useEventListener(window, 'resize', handleResize)
-useEventListener(document, 'fullscreenchange', fullScreenChange)
-
-
-onMounted(async () => {
-  await fetchGameState()
-})
-
-onUnmounted(() => {
-  exitGame()
-})
-
-
-</script>
 
 <style scoped>
 .beam {
@@ -379,9 +413,6 @@ onUnmounted(() => {
 
 
 .game-container:fullscreen {
-  /* background-image: url("@/assets/backgrounds/rainbow_landscape.jpg");
-  background-size: cover; */
-  /* display: flex; */
   flex-direction: column;
   justify-content: center;
   align-items: center;
@@ -390,6 +421,8 @@ onUnmounted(() => {
 
 .game-object {
   transition: transform 0.2s ease;
+  touch-action: none;
+  user-select: none;
 }
 
 .game-object:hover {
@@ -434,5 +467,26 @@ onUnmounted(() => {
 
 .scale-win {
   animation: bounce 0.5s ease-in-out;
+}
+
+.game-object.dragging {
+  opacity: 0.7;
+  transform: scale(1.1);
+  pointer-events: none;
+  z-index: 1000;
+}
+
+.pan.drop-target {
+  background-color: rgba(255, 255, 255, 0.2);
+  transition: all 0.2s ease;
+}
+
+#dragging-clone {
+  will-change: transform;
+  touch-action: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  image-rendering: -webkit-optimize-contrast;
 }
 </style>

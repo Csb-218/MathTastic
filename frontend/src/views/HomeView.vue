@@ -11,39 +11,39 @@ import type { Game } from '@/types/game'
 
 const dummyGames: Game[] = [
   {
-    id: 1,
+    id: "1",
     title: "Balance the Scale",
     description: "Learn addition and subtraction by balancing weights on a scale",
-    image: "https://placehold.co/600x400/orange/white?text=Balance+Scale",
-    level: "beginner",
-    ageRange: "6-8",
+    image: "https://scoonews.com/wp-content/uploads/2022/07/cover15851292261585129226.jpg",
+    difficulty: "easy",
+    age_range: "6-8",
     activities: [], // Initialize as empty array
-    targetRange: [1, 20],
-    totalPoints: 100,
+    target_range: [1, 20],
+    total_points: 100,
     template: false
   },
   {
-    id: 2,
+    id: '2',
     title: "Number Ninja",
     description: "Slice through numbers to master multiplication tables",
-    image: "https://placehold.co/600x400/purple/white?text=Number+Ninja",
-    level: "intermediate",
-    ageRange: "8-10",
+    image: "https://store-images.s-microsoft.com/image/apps.65264.13510798882430817.b10ab5df-3d92-47ad-9d56-96b15f73d63f.f3743b21-d1d9-4f19-9f7f-042b30214eef?mode=scale&q=90&h=1080&w=1920",
+    difficulty: "medium",
+    age_range: "8-10",
     activities: [],
-    targetRange: [1, 50],
-    totalPoints: 150,
+    target_range: [1, 50],
+    total_points: 150,
     template: false
   },
   {
-    id: 3,
+    id: '3',
     title: "Fraction Factory",
     description: "Build and compare fractions in this fun factory game",
-    image: "https://placehold.co/600x400/blue/white?text=Fraction+Factory",
-    level: "advanced",
-    ageRange: "9-11",
+    image: "https://storage.googleapis.com/ltkcms.appspot.com/fs/wfa/images/cover/wordsmith.base?v=1599144875",
+    difficulty: "hard",
+    age_range: "9-11",
     activities: [],
-    targetRange: [1, 100],
-    totalPoints: 200,
+    target_range: [1, 100],
+    total_points: 200,
     template: false
   }
 ]

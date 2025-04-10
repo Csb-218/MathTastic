@@ -1,49 +1,65 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import type { Game } from '@/types/game'
+import { ref, onMounted, watch, computed } from 'vue'
 import NavbarStudent from '@/components/blocks/navigation/NavbarStudent.vue'
 import BalanceScale from './games/BalanceScale.vue'
+import { useRoute } from 'vue-router'
+import { getGameById } from "@/services/GameService"
+import {
+  getProgressByStudentUid,
+  createProgress,
+} from '@/services/FireStoreService'
+import type { Game } from '@/types/game'
+import type { game_progress, progress_object } from '@/types/progress'
+import { useAuthStore } from "@/stores/authStore"
 
 const loading = ref(false)
+const { params } = useRoute();
+
+const gameId: string = params.id as string
 const currentGame = ref<Game | null>(null)
-const similarGames = ref<Game[]>([
+const progressDocId = ref<string>('')
+const levels = computed(() => currentGame.value?.activities.length)
+
+const { uid } = useAuthStore()
+
+const dummyGames: Game[] = [
   {
-    id: 2,
-    title: "Number Ninja",
-    description: "Master multiplication with this exciting ninja-themed game!",
-    image: "https://placehold.co/600x400/purple/white?text=Number+Ninja",
-    level: "beginner",
-    ageRange: "6-8",
+    id: "1",
+    title: "Balance the Scale",
+    description: "Learn addition and subtraction by balancing weights on a scale",
+    image: "https://scoonews.com/wp-content/uploads/2022/07/cover15851292261585129226.jpg",
+    difficulty: "easy",
+    age_range: "6-8",
     activities: [], // Initialize as empty array
-    targetRange: [1, 20],
-    totalPoints: 120,
+    target_range: [1, 20],
+    total_points: 100,
     template: false
   },
   {
-    id: 3,
-    title: "Math Quest",
-    description: "Embark on an adventure through the world of addition!",
-    image: "https://placehold.co/600x400/blue/white?text=Math+Quest",
-    level: "beginner",
-    ageRange: "6-8",
+    id: '2',
+    title: "Number Ninja",
+    description: "Slice through numbers to master multiplication tables",
+    image: "https://store-images.s-microsoft.com/image/apps.65264.13510798882430817.b10ab5df-3d92-47ad-9d56-96b15f73d63f.f3743b21-d1d9-4f19-9f7f-042b30214eef?mode=scale&q=90&h=1080&w=1920",
+    difficulty: "medium",
+    age_range: "8-10",
     activities: [],
-    targetRange: [1, 15],
-    totalPoints: 90,
+    target_range: [1, 50],
+    total_points: 150,
     template: false
   },
   {
-    id: 4,
-    title: "Addition Explorer",
-    description: "Discover the fun in adding numbers together!",
-    image: "https://placehold.co/600x400/green/white?text=Addition+Explorer",
-    level: "beginner",
-    ageRange: "6-8",
+    id: '3',
+    title: "Fraction Factory",
+    description: "Build and compare fractions in this fun factory game",
+    image: "https://storage.googleapis.com/ltkcms.appspot.com/fs/wfa/images/cover/wordsmith.base?v=1599144875",
+    difficulty: "hard",
+    age_range: "9-11",
     activities: [],
-    targetRange: [1, 25],
-    totalPoints: 110,
+    target_range: [1, 100],
+    total_points: 200,
     template: false
   }
-])
+]
 
 const shareGame = () => {
   if (navigator.share) {
@@ -57,25 +73,44 @@ const shareGame = () => {
 
 onMounted(async () => {
   try {
-    // TODO: Replace with actual API call
     loading.value = true
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    currentGame.value = {
-      id: 1,
-      title: "Balance the Scale",
-      description: "Learn addition and subtraction by balancing weights on a scale",
-      image: "https://placehold.co/600x400/orange/white?text=Balance+Scale",
-      level: "beginner",
-      ageRange: "6-8",
-      activities: [],
-      targetRange: [1, 20],
-      totalPoints: 100,
-      template: false
-    }
+    // Fetch the game data using the gameId from the route
+    const game = await getGameById(gameId)
+    // Set the current game
+    currentGame.value = game
+    console.log("Current game: ", currentGame.value, game)
   } catch (error) {
     console.error(error)
   } finally {
     loading.value = false
+  }
+})
+
+watch(currentGame, async () => {
+
+  if (currentGame.value) {
+
+    const progress: progress_object | null = await getProgressByStudentUid(uid, currentGame.value.id)
+
+    // if no progress is available
+    if (!progress) {
+      // create a new game progress
+      const new_game_progress: game_progress = {
+        game_id: currentGame.value.id,
+        current_level: 0,
+        points_gained: 0,
+        total_levels: currentGame.value.activities.length,
+        total_points: currentGame.value.total_points,
+      }
+      // create progress in Firestore
+      // and update the progress document ID in the store
+      const progress_id = await createProgress(uid, new_game_progress)
+      progressDocId.value = progress_id
+    }
+    // if progress is available
+    else {
+      progressDocId.value = progress.id
+    }
   }
 })
 </script>
@@ -91,11 +126,7 @@ onMounted(async () => {
           {{ currentGame?.title }}
         </h1>
         <div class="aspect-w-16 aspect-h-9 bg-gray-100 rounded-lg">
-          <!-- Game content will go here -->
-          <!-- <div class="flex items-center justify-center">
-                        <p class="text-gray-500 font-bubblegum">Game Loading...</p>
-                    </div> -->
-          <BalanceScale />
+          <BalanceScale v-if="currentGame && progressDocId" :currentGame="currentGame" :progress_id="progressDocId" />
         </div>
       </section>
 
@@ -109,17 +140,17 @@ onMounted(async () => {
             <div class="flex gap-4 mt-4">
               <div class="bg-amber-100 px-4 py-2 rounded-full">
                 <span class="font-bubblegum text-amber-700">
-                  Level: {{ currentGame?.level }}
+                  Levels: {{ levels }}
                 </span>
               </div>
               <div class="bg-amber-100 px-4 py-2 rounded-full">
                 <span class="font-bubblegum text-amber-700">
-                  Age: {{ currentGame?.ageRange }}
+                  Age: {{ }} 3-7
                 </span>
               </div>
               <div class="bg-amber-100 px-4 py-2 rounded-full">
                 <span class="font-bubblegum text-amber-700">
-                  Points: {{ currentGame?.totalPoints }}
+                  Points: {{ currentGame?.total_points }}
                 </span>
               </div>
             </div>
@@ -141,7 +172,7 @@ onMounted(async () => {
       <section class="bg-white rounded-xl shadow-lg p-6">
         <h2 class="text-2xl font-bubblegum text-gray-800 mb-4">More Fun Games</h2>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div v-for="game in similarGames" :key="game.id"
+          <div v-for="game in dummyGames" :key="game.id"
             class="bg-gray-50 rounded-lg p-4 hover:shadow-md transition-shadow">
             <div class="aspect-w-16 aspect-h-9 bg-gray-200 rounded-lg mb-2">
               <img :src="game.image" :alt="game.title" class="object-cover w-full h-full rounded-lg">
