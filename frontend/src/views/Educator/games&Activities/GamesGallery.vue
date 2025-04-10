@@ -26,6 +26,11 @@ onMounted(async () => {
       <!-- Game cards -->
       <div v-for="game in games" :key="game.id" class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition">
         <h3 class="text-xl font-bubblegum text-gray-800 mb-2">{{ game.title }}</h3>
+        <!-- game cover -->
+        <div class="relative aspect-w-16 aspect-h-9 rounded-lg overflow-hidden mb-4">
+          <img src="https://scoonews.com/wp-content/uploads/2022/07/cover15851292261585129226.jpg" :alt="game.title"
+            class="object-cover w-full h-full" />
+        </div>
         <p class="text-gray-600 mb-4">{{ game.description }}</p>
         <router-link :to="`/educator/games/${game.id}/create`" class="text-amber-500 hover:text-amber-600">
           Create Activity →
