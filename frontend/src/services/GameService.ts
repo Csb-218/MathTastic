@@ -20,6 +20,16 @@ export async function getGameById(id: string) {
   }
 }
 
+// remove activity from game
+export async function removeActivityFromGame(id: string, activity_id: string) {
+  try {
+    const response = await AxiosInstance.delete(`/games/${id}/activities/${activity_id}`)
+    return response.data
+  } catch (error) {
+    console.error(error)
+  }
+}
+
 // add activity to game
 export async function addActivityToGame(id: string, activity_id: Activity) {
   try {
@@ -39,6 +49,17 @@ export async function addActivityToGame(id: string, activity_id: Activity) {
 export async function createActivity(activity: Activity) {
   try {
     const response = await AxiosInstance.post('/activities/create', activity)
+    return response.data
+  } catch (error) {
+    console.error(error)
+  }
+}
+
+// delete activity
+export async function deleteActivity(id: string) {
+  console.log('Deleting activity with id:', id)
+  try {
+    const response = await AxiosInstance.delete(`/activities/${id}`)
     return response.data
   } catch (error) {
     console.error(error)
