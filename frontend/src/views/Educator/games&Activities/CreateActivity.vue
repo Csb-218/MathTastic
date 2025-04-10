@@ -228,9 +228,9 @@ onMounted(() => fetchGameActivities())
     </div>
 
     <!-- Updated grid layout with specific width distribution -->
-    <div class="flex gap-8">
+    <div class="flex lg:gap-8 lg:flex-row flex-col gap-4">
       <!-- Form section - 40% width -->
-      <div class="w-[40%]">
+      <div class="lg:w-[40%]">
         <form @submit.prevent="updateGame" class="bg-white rounded-xl shadow-lg p-6 space-y-6 relative">
           <!-- delete dialog button -->
           <AlertDialogDelete :selectedActivity="selectedActivity" :handleDeleteActivity="handleDeleteActivity" />
