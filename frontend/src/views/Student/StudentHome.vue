@@ -14,7 +14,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from '@/components/ui/sidebar'
-import { useAuthStore } from "@/stores/authentication"
+import { useAuthStore } from "@/stores/authStore"
 
 
 const authStore = useAuthStore()

@@ -13,7 +13,7 @@ import googleIcon from '@/assets/icons/google-icon.svg'
 // types
 import type { DecodedToken } from "@/types/miscellaneous"
 // store
-import { useAuthStore } from "@/stores/authentication"
+import { useAuthStore } from "@/stores/authStore"
 
 import { getSessionCookie } from "@/lib/helpers"
 
