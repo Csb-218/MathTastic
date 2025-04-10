@@ -1,5 +1,4 @@
 from typing import List
-from beanie import Link
 from fastapi import APIRouter, HTTPException, Path, Body
 from app.models.game import Game
 from app.models.activity import Activity
@@ -32,7 +31,10 @@ async def get_games():
             game_response = GameResponse(
                 id=str(game.id),
                 title=game.title,
+                description=game.description,
                 creator=str(game.creator),
+                age_range=game.age_range,
+                difficulty=game.difficulty,
                 activities=activities,  # Use fetched activities
                 target_range=game.target_range,
                 max_time_allowed=game.max_time_allowed,
@@ -51,14 +53,17 @@ async def get_games():
 async def get_game(game_id: str = Path(..., description="The ID of the game to get")):
 
     game = await Game.get(str(validate_object_id(game_id,"game_id")),fetch_links=True)
-    print(game)
+
     if not game:
         raise HTTPException(status_code=404, detail="Game not found")
     
     return  GameResponse(
             id=str(game.id),
             title=game.title,
+            description=game.description,
             creator=str(game.creator.id),
+            age_range=game.age_range,
+            difficulty=game.difficulty,
             activities=list(game.activities),
             target_range=game.target_range,
             max_time_allowed=game.max_time_allowed,
@@ -98,7 +103,10 @@ async def create_game(game_data: GameCreate) -> GameResponse:
         return GameResponse(
             id=str(new_game.id),
             title=new_game.title,
-            creator=str(game_data.creator_id),
+            description=new_game.description,
+            creator=str(new_game.creator_id),
+            age_range=new_game.age_range,
+            difficulty=new_game.difficulty,
             activities=[activity for activity in new_game.activities],
             target_range=new_game.target_range,
             max_time_allowed=new_game.max_time_allowed,
@@ -125,6 +133,15 @@ async def update_game(
 
         if game_update.template is not None:
             game.template = game_update.template
+
+        if game_update.description:
+            game.description = game_update.description
+
+        if game_update.age_range:
+            game.age_range = game_update.age_range
+
+        if game_update.difficulty:
+            game.difficulty = game_update.difficulty
         
         if game_update.activity_ids:
             # Create new activities list with full Activity instances
@@ -152,6 +169,9 @@ async def update_game(
         return GameResponse(
             id=str(updated_game.id),
             title=updated_game.title,
+            description=updated_game.description,
+            age_range=updated_game.age_range,
+            difficulty=updated_game.difficulty,
             creator=str(updated_game.creator.id),
             activities=updated_game.activities,  # Return full activities
             target_range=updated_game.target_range,
@@ -198,6 +218,9 @@ async def add_activity_to_game(
         return GameResponse(
             id=str(game.id),
             title=game.title,
+            description=game.description,
+            age_range=game.age_range,
+            difficulty=game.difficulty,
             creator=str(game.creator),
             activities=game.activities,  # Return full activities
             target_range=game.target_range,
@@ -227,6 +250,9 @@ async def remove_activity_from_game(
         return GameResponse(
             id=str(game.id),
             title=game.title,
+            description=game.description,
+            age_range=game.age_range,
+            difficulty=game.difficulty,
             creator=str(game.creator),
             activities=game.activities,  # Return full activities
             target_range=game.target_range,

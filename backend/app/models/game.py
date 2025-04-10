@@ -1,11 +1,25 @@
-from typing import List
+from typing import List , Literal
 from beanie import Document, Link
 from pydantic import Field, constr
 from app.models.activity import Activity
 from app.models.user import User
 
 class Game(Document):
-    title: constr(max_length=50) = Field(..., description="Game title, max 50 characters")
+    title: str = Field(..., description="Game title, max 50 characters")
+    description: str = Field(
+        default="",
+        max_length=200,
+        description="Game description, max 200 characters"
+    )
+    age_range: str = Field(
+        default="",
+        max_length=5,
+        description="Age range for the game, max 5 characters"
+    )
+    difficulty: Literal['easy', 'medium', 'hard'] = Field(
+        default='easy',
+        description="Difficulty level of the game (easy, medium, or hard)"
+    )
     creator: Link[User] = Field(..., description="Reference to creator user")
     activities: List[Activity] = Field( 
         default_factory=list,
