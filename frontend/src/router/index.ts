@@ -4,15 +4,14 @@ import AdminView from '@/views/AdminView.vue'
 import AllGames from '@/views/AllGames.vue'
 import PlayGame from '@/views/Student/PlayGame.vue'
 import AuthenticationForm from '@/views/Authentication/AuthenticationForm.vue'
-import EducatorView from '@/views/Educator/EducatorView.vue'
-import CreateGame from '@/views/Educator/CreateGame.vue'
+import EducatorView from '@/views/Educator/EducatorHome.vue'
+import EducatorDashboard from '@/components/blocks/dashboards/EducatorDashboard.vue'
 
 import StudentHome from '@/views/Student/StudentHome.vue'
-import BalanceScale from '@/views/Student/games/BalanceScale.vue'
 import StudentProfile from '@/views/Student/profile/StudentProfile.vue'
 
 // store
-import { useAuthStore } from '@/stores/authentication'
+import { useAuthStore } from '@/stores/authStore'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -25,11 +24,8 @@ const router = createRouter({
     {
       path: '/about',
       name: 'about',
-      // route level code-splitting
-      // this generates a separate chunk (About.[hash].js) for this route
-      // which is lazy-loaded when the route is visited.
       component: () => import('../views/AboutView.vue'),
-      meta: { requiresAuth: true }
+      meta: { requiresAuth: true },
     },
     {
       path: '/login',
@@ -47,7 +43,6 @@ const router = createRouter({
       component: PlayGame,
       meta: { requiresAuth: true, role: 'student' },
     },
-
     {
       path: '/student',
       name: 'student',
@@ -55,32 +50,26 @@ const router = createRouter({
       meta: { requiresAuth: true, role: 'student' },
       children: [
         {
-          path: 'play',
-          name: 'balance-scale',
-          component: BalanceScale,
-        },
-        {
           path: 'dashboard',
-          name: 'dashboard',
+          name: 'student-dashboard',
           component: StudentProfile,
         },
         {
           path: 'progress',
-          name: 'progress',
+          name: 'student-progress',
           component: StudentProfile,
         },
         {
           path: 'assessment',
-          name: 'assessment',
+          name: 'student-assessment',
           component: StudentProfile,
         },
         {
           path: 'workbook',
-          name: 'workbook',
+          name: 'student-workbook',
           component: StudentProfile,
-        }
-
-      ]
+        },
+      ],
     },
     {
       path: '/educator',
@@ -89,24 +78,38 @@ const router = createRouter({
       meta: { requiresAuth: true, role: 'educator' },
       children: [
         {
-          path: 'create',
-          name: 'create',
-          component: CreateGame,
-        }
-      ]
+          path: '',
+          name: 'dashboard',
+          component: EducatorDashboard,
+        },
+        {
+          path: 'progress',
+          name: 'educator-progress',
+          component: () => import('@/views/Educator/progress/ProgressSection.vue'),
+        },
+        {
+          path: 'games',
+          name: 'educator-games',
+          component: () => import('@/views/Educator/games&Activities/GamesGallery.vue'),
+        },
+        {
+          path: 'games/:game_id/create',
+          name: 'create-activity',
+          component: () => import('@/views/Educator/games&Activities/CreateActivity.vue'),
+        },
+      ],
     },
     {
       path: '/admin',
       name: 'admin',
       component: AdminView,
-      meta: { requiresAuth: true, role: 'admin' }
-    }
+      meta: { requiresAuth: true, role: 'admin' },
+    },
   ],
 })
 
 // Navigation guard for protected routes
 router.beforeEach((to, from, next) => {
-
   const auth = useAuthStore()
 
   // Skip auth check for login page
@@ -116,11 +119,15 @@ router.beforeEach((to, from, next) => {
   }
 
   if (to.meta.requiresAuth) {
-
     if (auth.is_authenticated) {
       // Check role if required
       if (to.meta.role && to.meta.role !== auth.role) {
-        next('/login')
+        alert('You do not have permission to access this page.')
+
+        // 3 seconds delay before redirecting to login
+        setTimeout(() => {
+          next('/login')
+        }, 3000)
       } else {
         next()
       }
