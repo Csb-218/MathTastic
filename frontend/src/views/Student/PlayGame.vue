@@ -22,44 +22,44 @@ const levels = computed(() => currentGame.value?.activities.length)
 
 const { uid } = useAuthStore()
 
-const similarGames = ref<Game[]>([
+const dummyGames: Game[] = [
   {
-    id: '2',
-    title: "Number Ninja",
-    description: "Master multiplication with this exciting ninja-themed game!",
-    image: "https://placehold.co/600x400/purple/white?text=Number+Ninja",
+    id: "1",
+    title: "Balance the Scale",
+    description: "Learn addition and subtraction by balancing weights on a scale",
+    image: "https://scoonews.com/wp-content/uploads/2022/07/cover15851292261585129226.jpg",
     difficulty: "easy",
     age_range: "6-8",
     activities: [], // Initialize as empty array
     target_range: [1, 20],
-    total_points: 120,
+    total_points: 100,
+    template: false
+  },
+  {
+    id: '2',
+    title: "Number Ninja",
+    description: "Slice through numbers to master multiplication tables",
+    image: "https://store-images.s-microsoft.com/image/apps.65264.13510798882430817.b10ab5df-3d92-47ad-9d56-96b15f73d63f.f3743b21-d1d9-4f19-9f7f-042b30214eef?mode=scale&q=90&h=1080&w=1920",
+    difficulty: "medium",
+    age_range: "8-10",
+    activities: [],
+    target_range: [1, 50],
+    total_points: 150,
     template: false
   },
   {
     id: '3',
-    title: "Math Quest",
-    description: "Embark on an adventure through the world of addition!",
-    image: "https://placehold.co/600x400/blue/white?text=Math+Quest",
-    difficulty: "easy",
-    age_range: "6-8",
+    title: "Fraction Factory",
+    description: "Build and compare fractions in this fun factory game",
+    image: "https://storage.googleapis.com/ltkcms.appspot.com/fs/wfa/images/cover/wordsmith.base?v=1599144875",
+    difficulty: "hard",
+    age_range: "9-11",
     activities: [],
-    target_range: [1, 15],
-    total_points: 90,
-    template: false
-  },
-  {
-    id: '4',
-    title: "Addition Explorer",
-    description: "Discover the fun in adding numbers together!",
-    image: "https://placehold.co/600x400/green/white?text=Addition+Explorer",
-    difficulty: "easy",
-    age_range: "6-8",
-    activities: [],
-    target_range: [1, 25],
-    total_points: 110,
+    target_range: [1, 100],
+    total_points: 200,
     template: false
   }
-])
+]
 
 const shareGame = () => {
   if (navigator.share) {
@@ -172,7 +172,7 @@ watch(currentGame, async () => {
       <section class="bg-white rounded-xl shadow-lg p-6">
         <h2 class="text-2xl font-bubblegum text-gray-800 mb-4">More Fun Games</h2>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div v-for="game in similarGames" :key="game.id"
+          <div v-for="game in dummyGames" :key="game.id"
             class="bg-gray-50 rounded-lg p-4 hover:shadow-md transition-shadow">
             <div class="aspect-w-16 aspect-h-9 bg-gray-200 rounded-lg mb-2">
               <img :src="game.image" :alt="game.title" class="object-cover w-full h-full rounded-lg">
