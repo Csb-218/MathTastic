@@ -101,35 +101,18 @@ async def login_user(
                 detail="User not found"
             )
         
-
-        domain = os.getenv("FRONTEND_URL_PROD") if os.getenv("ENV") == "production" else os.getenv("FRONTEND_URL")
-        is_prod = os.getenv("ENV") == "production"
         cookie_value = jwt.encode(serialize_user_for_cookie(user), key=os.getenv("SECRET_KEY"))
 
-        if is_prod:
-            # For production
-            response.set_cookie(
+        response.set_cookie(
                 key="user_cookie",
                 value=cookie_value,
-                domain=domain, 
                 path="/",
                 max_age=3600,
-                samesite="lax",
+                samesite="none",
                 secure=True,  
-                httponly=False 
-            )
-        else:
-            # For development
-            response.set_cookie(
-                key="user_cookie",
-                value=cookie_value,
-                path="/",
-                domain=domain,
-                max_age=3600,
-                samesite="lax",
-                secure=False,
                 httponly=False
             )
+
 
         return {"message": "login successful"}
         
