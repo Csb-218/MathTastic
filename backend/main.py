@@ -20,13 +20,17 @@ app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[ 
-        f"https://{os.getenv('FRONTEND_URL_PROD')}",
-        "http://localhost:5173"
+        f"https://{os.getenv('FRONTEND_URL')}",
+        "http://localhost:5173",
+        "https://math-tastic-84t7cpqal-csb218s-projects.vercel.app",
+        "https://math-tastic.vercel.app",
     ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+print(os.getenv('FRONTEND_URL'))
 
 # routes
 app.include_router(users.router)
