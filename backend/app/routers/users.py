@@ -103,17 +103,19 @@ async def login_user(
                 detail="User not found"
             )
         
-        
+        cookie_value = jwt.encode(serialize_user_for_cookie(user),key=os.getenv("SECRET_KEY"))
         response.set_cookie(
-            key="user_cookie",
-            value=jwt.encode(serialize_user_for_cookie(user),key=os.getenv("SECRET_KEY")) ,
-            path="/",
-            max_age=3600,
-            domain=os.getenv("FRONTEND_URL"),
-            samesite="lax",
-            secure=False,
-            expires=3600
-        )
+                key="user_cookie",
+                value=cookie_value,
+                path="/",
+                domain="math-tastic.vercel.app",
+                max_age=3600,
+                samesite="none",
+                secure=True,  
+                httponly=False
+            )
+
+
         return {"message": "login successful"}
         
 
