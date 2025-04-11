@@ -109,7 +109,7 @@ async def login_user(
             value=jwt.encode(serialize_user_for_cookie(user),key=os.getenv("SECRET_KEY")) ,
             path="/",
             max_age=3600,
-            # domain="localhost",
+            domain=os.getenv("FRONTEND_URL"),
             samesite="lax",
             secure=False,
             expires=3600
