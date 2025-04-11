@@ -24,6 +24,7 @@ app.add_middleware(
         "http://localhost:5173",
         "https://math-tastic-84t7cpqal-csb218s-projects.vercel.app",
         "https://math-tastic.vercel.app",
+        "https://mathtastic-client.onrender.com"
     ],
     allow_credentials=True,
     allow_methods=["*"],
