@@ -1,11 +1,8 @@
-from typing import Any, Dict
-from fastapi import APIRouter, Depends, HTTPException , Response
-from datetime import datetime
-from fastapi.responses import JSONResponse
-from fastapi.security import HTTPBearer
-import json
-import jwt
 import os
+from datetime import datetime
+from fastapi import APIRouter, Depends, HTTPException , Response , Request
+from fastapi.security import HTTPBearer
+import jwt
 from dotenv import load_dotenv
 from app.models.user import User
 from app.schemas.user_schema import UserCreate, UserLogin 
@@ -39,7 +36,7 @@ async def get_users():
         users = await User.find_all().to_list()
         return users
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error retrieving users: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error retrieving users: {str(e)}") from e
 
 # Add new user
 @router.post("/register",
@@ -69,7 +66,7 @@ async def register_user(user: UserCreate,
         await new_user.insert()
         return new_user
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=f"Error registering user: {str(e)}") from e
 
 # login user
 @router.post(
@@ -81,7 +78,7 @@ async def login_user(
     response: Response,
     user_data: UserLogin,
     verified_token: dict = Depends(verify_token)  # Get the verified token data
-):
+) :
     try:
 
         # token_data contains the decoded Firebase token
@@ -124,6 +121,30 @@ async def login_user(
         raise HTTPException(
             status_code=401,
             detail=str(e)
-        )
+        ) from e
 
+# check user authentication
+@router.get(
+    "/check-auth",
+    summary="Check Authentication",
+    description="Check if the user is authenticated using the JWT token"
+)
+async def check_auth(
+    request: Request
+):
+    try:
+        if request.cookies.get("user_cookie") is None:
+            raise HTTPException(
+                status_code=401,
+                detail="No authentication token provided"
+            )
+        # If the token is valid, return the user data
+        return {"message": "User is authenticated"}
+    
+    except Exception as e:
+        print(e)
+        raise HTTPException(
+            status_code=401, 
+            detail='Invalid authentication credentials'
+        ) from e
 
