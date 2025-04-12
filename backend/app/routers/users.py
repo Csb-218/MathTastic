@@ -108,12 +108,12 @@ async def login_user(
                 key="user_cookie",
                 value=cookie_value,
                 path="/",
-                domain=".onrender.com",
+                # domain=".onrender.com",
                 max_age=3600,
                 samesite="none",
-                secure=True,  
+                secure=True, 
                 httponly=False
-            )
+        )
 
 
         return {"message": "login successful"}
