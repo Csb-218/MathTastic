@@ -23,6 +23,9 @@ const fruitIcons = [
 ]
 
 export function getSessionCookie(): string | undefined {
+  // Debug logging
+  console.log('Environment:', import.meta.env.MODE)
+  console.log('Current cookies:', document.cookie)
   const cookies = document.cookie.split(';')
   const sessionCookie = cookies.find((cookie) => cookie.trim().startsWith('user'))
   return sessionCookie
