@@ -58,6 +58,7 @@ const handleGoogle = async () => {
         .then(() => {
           const sessionCookie = getSessionCookie()
           if (sessionCookie) init(sessionCookie)
+          console.log(sessionCookie)
           replace('/student')
         })
         .catch((error) => console.error(error))
