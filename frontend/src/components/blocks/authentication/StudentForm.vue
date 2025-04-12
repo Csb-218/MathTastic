@@ -56,10 +56,16 @@ const handleGoogle = async () => {
 
       await LoginUser(user, idToken)
         .then(() => {
-          const sessionCookie = getSessionCookie()
-          if (sessionCookie) init(sessionCookie)
-          console.log(sessionCookie)
-          replace('/student')
+          setTimeout(() => {
+            const sessionCookie = getSessionCookie();
+            if (sessionCookie) {
+              init(sessionCookie);
+              replace('/student');
+            } else {
+              console.error('No session cookie found after login');
+              errorMessage.value = 'Login failed. Please try again.';
+            }
+          }, 100); // Small delay to ensure cookie is set
         })
         .catch((error) => console.error(error))
     }
