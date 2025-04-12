@@ -45,7 +45,6 @@ export const useAuthStore = defineStore('auth', {
       try {
         const token = cookie.split('=')[1] // Get token value from cookie
         const decoded_token = jwtDecode<DecodedToken>(token)
-        console.log('Decoded token:', decoded_token.email)
 
         this.login_user({
           session: token,
