@@ -1,14 +1,15 @@
 import { defineStore } from 'pinia'
 import { jwtDecode } from 'jwt-decode'
-
+import { getSessionCookie } from '@/lib/helpers'
+import { LoginUser, SignUser } from '@/services/AuthService'
 // types
-import type { user_state } from '@/types/user'
+import type { user_login, user_state, user } from '@/types/user'
 import type { DecodedToken } from '@/types/miscellaneous'
 
 export const useAuthStore = defineStore('auth', {
   state: (): user_state => {
     return {
-      session: '',
+      session: getSessionCookie(),
       name: '',
       email: '',
       role: '',
@@ -33,26 +34,42 @@ export const useAuthStore = defineStore('auth', {
     },
   },
   actions: {
-    login_user(user_data: user_state) {
-      if (user_data.session) this.session = user_data.session
-      if (user_data.name) this.name = user_data.name
-      if (user_data.role) this.role = user_data.role
-      if (user_data.email) this.email = user_data.email
-      if (user_data.uid) this.uid = user_data.uid
+    async login_user(user: user_login, idToken: string): Promise<void> {
+      try {
+        const response = await LoginUser(user, idToken)
+        const token = response?.data.token
+        await this.init(token)
+      } catch (error) {
+        console.error('Login failed:', error)
+      }
     },
 
-    async init(cookie: string): Promise<void> {
+    async register_user(user_register: user, idToken: string): Promise<void> {
       try {
-        const token = cookie.split('=')[1] // Get token value from cookie
-        const decoded_token = jwtDecode<DecodedToken>(token)
+        await SignUser(user_register, idToken)
+      } catch (error) {
+        console.error('Login failed:', error)
+      }
+    },
 
-        this.login_user({
-          session: token,
-          name: decoded_token.name,
-          email: decoded_token.email,
-          role: decoded_token.role,
-          uid: decoded_token.uid,
-        })
+    async init(token: string): Promise<void> {
+      try {
+        const { sub, exp } = jwtDecode<DecodedToken>(token)
+
+        // Check if the token is expired
+        if (exp < Date.now() / 1000) {
+          console.error('Token expired')
+          this.logout()
+          return
+        }
+        // Set the session cookie with age expiration
+        document.cookie = `user_cookie=${token}; path=/; max-age=3600` // 1 hour expiration
+        // Set the user data
+        this.session = token
+        this.name = sub.name
+        this.email = sub.email
+        this.role = sub.role
+        this.uid = sub.uid
       } catch (error) {
         console.error('Failed to initialize session:', error)
       }
