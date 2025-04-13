@@ -1,5 +1,5 @@
 import os
-from datetime import datetime
+from datetime import datetime,timedelta
 from fastapi import APIRouter, Depends, HTTPException , Response , Request
 from fastapi.security import HTTPBearer
 import jwt
@@ -75,7 +75,6 @@ async def register_user(user: UserCreate,
     description="Authenticate user with Firebase token and return user details"
 )
 async def login_user(
-    response: Response,
     user_data: UserLogin,
     verified_token: dict = Depends(verify_token)  # Get the verified token data
 ) :
@@ -100,20 +99,20 @@ async def login_user(
                 detail="User not found"
             )
         
-        cookie_value = jwt.encode(serialize_user_for_cookie(user),key=os.getenv("SECRET_KEY"))
-        response.set_cookie(
-                key="user_cookie",
-                value=cookie_value,
-                path="/",
-                # domain=".onrender.com",
-                max_age=3600,
-                samesite="none",
-                secure=True, 
-                httponly=False
+        payload = {
+            "exp": datetime.now() + timedelta(seconds=3600),
+            "iat": datetime.now(),
+            "sub": serialize_user_for_cookie(user)
+        }
+
+
+        token = jwt.encode(
+            payload,
+            os.getenv("SECRET_KEY"),
+            algorithm="HS256"
         )
-
-
-        return {"message": "login successful"}
+        
+        return {"message": "Login successful", "token": token}
         
 
     except Exception as e:
