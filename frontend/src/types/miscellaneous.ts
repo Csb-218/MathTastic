@@ -7,6 +7,18 @@ export interface navItem {
 }
 
 export interface DecodedToken {
+  iat: number
+  exp: number
+  sub: {
+    id: string
+    name: string
+    email: string
+    role: string
+    uid: string
+  }
+}
+
+export interface DecodedIdToken {
   name: string
   email: string
   role: string
