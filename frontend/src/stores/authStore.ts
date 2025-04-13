@@ -18,7 +18,7 @@ export const useAuthStore = defineStore('auth', {
   },
   getters: {
     is_authenticated: (state) => {
-      return state.session !== ''
+      return state.session !== null
     },
     is_admin: (state) => {
       return state.role === 'admin'
@@ -83,6 +83,7 @@ export const useAuthStore = defineStore('auth', {
       this.email = ''
       this.role = ''
       this.uid = ''
+      console.log('User logged out')
     },
   },
 })
