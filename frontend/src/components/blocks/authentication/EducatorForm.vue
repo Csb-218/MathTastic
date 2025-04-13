@@ -4,9 +4,10 @@ import { useRouter } from 'vue-router'
 import { jwtDecode } from 'jwt-decode'
 import { auth } from '@/config/firebaseConfig'
 import { createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword } from 'firebase/auth'
-
+import { Button } from '@/components/ui/button'
 // assets
 import googleIcon from '@/assets/icons/google-icon.svg'
+import { Loader2 } from 'lucide-vue-next'
 // types
 import type { DecodedIdToken} from "@/types/miscellaneous"
 // store
@@ -216,10 +217,11 @@ const handleSubmit = async () => {
 
       <div class="space-y-1 mt-4">
         <!-- Submit Button -->
-        <button type="submit"
+        <Button type="submit" :disabled="loading"
           class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ">
+          <Loader2 v-if="loading" class="animate-spin mr-2" />
           {{ isLogin ? 'Sign In' : 'Create Account' }}
-        </button>
+        </Button>
 
         <!-- Divider -->
         <div class="relative my-4">
@@ -232,16 +234,17 @@ const handleSubmit = async () => {
         </div>
 
         <!-- Login via Google -->
-        <button type="button" @click="handleGoogle"
+        <Button type="button" @click="handleGoogle" :disabled="loading"
           class="w-full flex items-center justify-center gap-2 py-2 px-4 rounded-md border border-gray-300 shadow-sm text-sm font-medium text-gray-600 bg-white hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+          <Loader2 v-if="loading" class="animate-spin mr-2" />
           <img :src="googleIcon" alt="Google Icon" class="w-5 h-5" />
           {{ !isLogin ? "Sign up with Google" : "Sign in with Google" }}
-        </button>
+        </Button>
         <!-- Toggle Form -->
         <div class="text-center mt-5">
-          <button type="button" class="text-sm text-blue-600 hover:text-blue-500" @click="toggleForm">
+          <Button type="button" class="text-sm text-blue-600 hover:text-blue-500" @click="toggleForm">
             {{ isLogin ? 'Need an account? Sign up' : 'Already have an account? Sign in' }}
-          </button>
+          </Button>
         </div>
       </div>
     </form>
