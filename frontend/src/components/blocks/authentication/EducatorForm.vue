@@ -4,19 +4,17 @@ import { useRouter } from 'vue-router'
 import { jwtDecode } from 'jwt-decode'
 import { auth } from '@/config/firebaseConfig'
 import { createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword } from 'firebase/auth'
-// services
-import { SignUser, LoginUser } from '@/services/AuthService'
+
 // assets
 import googleIcon from '@/assets/icons/google-icon.svg'
 // types
-import type { DecodedToken } from "@/types/miscellaneous"
+import type { DecodedIdToken} from "@/types/miscellaneous"
 // store
 import { useAuthStore } from "@/stores/authStore"
 
-import { getSessionCookie } from "@/lib/helpers"
 
 
-
+const loading = ref(false)
 const isLogin = ref(true)
 const email = ref('')
 const password = ref('')
@@ -25,7 +23,7 @@ const errorMessage = ref('')
 
 const { replace } = useRouter()
 const provider = new GoogleAuthProvider();
-const { init } = useAuthStore()
+const { login_user, register_user  } = useAuthStore()
 
 const toggleForm = () => {
   isLogin.value = !isLogin.value
@@ -40,53 +38,43 @@ const clearError = () => {
 
 const handleGoogle = async () => {
   try {
-
+    loading.value = true
     const userCredential = await signInWithPopup(auth, provider)
     const idToken = (await userCredential.user.getIdTokenResult()).token
 
     // login the user
     if (isLogin.value) {
-
+      //construct user object
       const user = {
         email: userCredential.user.email || "",
         uid: userCredential.user.uid,
       }
 
-      LoginUser(user, idToken)
-        .then(() => {
-          const sessionCookie = getSessionCookie()
-          if (sessionCookie) init(sessionCookie)
-          replace('/educator')
-        })
+      await login_user(user, idToken)
+        .then(() => replace('/educator'))
         .catch((error) => console.error(error))
     }
     else {
       // sign up the user
+      const name = jwtDecode<DecodedIdToken>(idToken).name
+      const email = jwtDecode<DecodedIdToken>(idToken).email
 
-      const name = jwtDecode<DecodedToken>(idToken).name
-      const email = jwtDecode<DecodedToken>(idToken).email
-
+      // construct user object
       const user = {
         name: name,
         email: email,
         uid: userCredential.user.uid,
-        role: 'student' as const
+        role: 'educator' as const
       }
-
-      console.log(user, idToken, userCredential)
-
-      // save user to database
-      await SignUser(user, idToken)
-        .then(() => {
-          const sessionCookie = getSessionCookie()
-          if (sessionCookie) init(sessionCookie)
-          replace('/educator')
-        })
-        .catch((err) => console.error(err))
+      await register_user(user, idToken)
+        .then(() => replace('/educator'))
+        .catch((error) => console.error(error))
     }
-
   } catch (error: unknown) {
     console.error(error)
+  } finally {
+    loading.value = false
+    return
   }
 
 }
@@ -97,27 +85,19 @@ const handleSubmit = async () => {
   if (isLogin.value) {
 
     try {
+      loading.value = true
+
       const userCredential = await signInWithEmailAndPassword(auth, email.value, password.value)
 
       const user = {
         email: email.value,
         uid: userCredential.user.uid,
       }
-
       const idToken = (await userCredential.user.getIdTokenResult()).token
 
-      console.log(user, idToken, userCredential)
-
-      // login the user
-      if (idToken) LoginUser(user, idToken)
-        .then(
-          () => {
-            const sessionCookie = getSessionCookie()
-            if (sessionCookie) init(sessionCookie)
-            replace('/educator')
-          }
-        )
-        .catch(error => console.error(error))
+      await login_user(user, idToken)
+        .then(() => replace('/educator'))
+        .catch((error) => console.error(error))
 
     } catch (error: unknown) {
 
@@ -130,14 +110,17 @@ const handleSubmit = async () => {
         errorMessage.value = 'An error occurred. Please try again.'
       }
       console.error(firebaseError)
+    } finally {
+      loading.value = false
+      return
     }
-    return
+
 
   }
 
   // signup flow
   try {
-
+    loading.value = true
     const userCredential = await createUserWithEmailAndPassword(auth, email.value, password.value)
 
     const idToken = await userCredential.user.getIdToken()
@@ -146,21 +129,22 @@ const handleSubmit = async () => {
       name: name.value,
       email: email.value,
       uid: userCredential.user.uid,
-      role: "educator" as const
+      role: 'educator' as const
     }
 
-    console.log(user, userCredential.user)
-
-    // save user to database
-    await SignUser(user, idToken)
-      .then(() => {
-        const sessionCookie = getSessionCookie()
-        if (sessionCookie) init(sessionCookie)
-        replace('/educator')
+   // sign up the user
+   await register_user(user, idToken)
+      .then(async () => {
+        // login the user
+        await login_user(user, idToken)
+          .then(() => replace('/educator'))
+          .catch((error) => console.error(error))
       })
-      .catch((err) => console.error(err))
+      .catch((error) => console.error(error))
+
 
     alert("Signed up successfully!")
+    console.log(userCredential)
   } catch (error: unknown) {
     const firebaseError = error as { code: string };
     if (firebaseError.code === 'auth/email-already-in-use') {
@@ -172,10 +156,14 @@ const handleSubmit = async () => {
     }
     console.error(firebaseError)
 
+  } finally {
+    loading.value = false
+    return
   }
 
 
 }
+
 
 
 

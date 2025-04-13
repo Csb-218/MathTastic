@@ -6,16 +6,12 @@ import { auth } from '@/config/firebaseConfig'
 import { Button } from '@/components/ui/button'
 import { Loader2, } from 'lucide-vue-next'
 import { createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword } from 'firebase/auth'
-// services
-import { SignUser, LoginUser } from '@/services/AuthService'
 // assets
 import googleIcon from '@/assets/icons/google-icon.svg'
 // types
-import type { DecodedToken } from "@/types/miscellaneous"
+import type { DecodedIdToken } from "@/types/miscellaneous"
 // store
 import { useAuthStore } from "@/stores/authStore"
-
-import { getSessionCookie } from "@/lib/helpers"
 
 const loading = ref(false)
 const isLogin = ref(true)
@@ -26,7 +22,7 @@ const errorMessage = ref('')
 
 const { replace } = useRouter()
 const provider = new GoogleAuthProvider();
-const { init } = useAuthStore()
+const { login_user, register_user } = useAuthStore()
 
 const toggleForm = () => {
   isLogin.value = !isLogin.value
@@ -54,25 +50,14 @@ const handleGoogle = async () => {
         uid: userCredential.user.uid,
       }
 
-      await LoginUser(user, idToken)
-        .then(() => {
-          setTimeout(() => {
-            const sessionCookie = getSessionCookie();
-            if (sessionCookie) {
-              init(sessionCookie);
-              replace('/student');
-            } else {
-              console.error('No session cookie found after login');
-              errorMessage.value = 'Login failed. Please try again.';
-            }
-          }, 100); // Small delay to ensure cookie is set
-        })
+      await login_user(user, idToken)
+        .then(() => replace('/student'))
         .catch((error) => console.error(error))
     }
     else {
       // sign up the user
-      const name = jwtDecode<DecodedToken>(idToken).name
-      const email = jwtDecode<DecodedToken>(idToken).email
+      const name = jwtDecode<DecodedIdToken>(idToken).name
+      const email = jwtDecode<DecodedIdToken>(idToken).email
 
       // construct user object
       const user = {
@@ -81,16 +66,10 @@ const handleGoogle = async () => {
         uid: userCredential.user.uid,
         role: 'student' as const
       }
-      // save user to database
-      await SignUser(user, idToken)
-        .then(() => {
-          const sessionCookie = getSessionCookie()
-          if (sessionCookie) init(sessionCookie)
-          replace('/student')
-        })
+      await register_user(user, idToken)
+        .then(() => replace('/student'))
         .catch((error) => console.error(error))
     }
-
   } catch (error: unknown) {
     console.error(error)
   } finally {
@@ -99,7 +78,6 @@ const handleGoogle = async () => {
   }
 
 }
-
 
 const handleSubmit = async () => {
   // login flow
@@ -114,15 +92,10 @@ const handleSubmit = async () => {
         email: email.value,
         uid: userCredential.user.uid,
       }
-
       const idToken = (await userCredential.user.getIdTokenResult()).token
 
-      // login the user
-      await LoginUser(user, idToken).then(() => {
-        const sessionCookie = getSessionCookie()
-        if (sessionCookie) init(sessionCookie)
-        replace('/student')
-      })
+      await login_user(user, idToken)
+        .then(() => replace('/student'))
         .catch((error) => console.error(error))
 
     } catch (error: unknown) {
@@ -140,8 +113,6 @@ const handleSubmit = async () => {
       loading.value = false
       return
     }
-
-
   }
 
   // signup flow
@@ -159,13 +130,15 @@ const handleSubmit = async () => {
     }
 
     // sign up the user
-    await SignUser(user, idToken)
-      .then(() => {
-        const sessionCookie = getSessionCookie()
-        if (sessionCookie) init(sessionCookie)
-        replace('/student')
+    await register_user(user, idToken)
+      .then(async () => {
+        // login the user
+        await login_user(user, idToken)
+          .then(() => replace('/student'))
+          .catch((error) => console.error(error))
       })
       .catch((error) => console.error(error))
+
 
     alert("Signed up successfully!")
     console.log(userCredential)
@@ -187,6 +160,7 @@ const handleSubmit = async () => {
 
 
 }
+
 </script>
 
 <template>
