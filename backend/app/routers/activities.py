@@ -2,8 +2,6 @@ from fastapi import APIRouter, HTTPException, Path
 from app.models.activity import Activity
 from app.schemas.activity_schema import ActivityCreate, ActivityUpdate, ActivityResponse
 from typing import List
-from bson import ObjectId
-from bson.errors import InvalidId
 from app.utils.helpers import validate_object_id
 
 router = APIRouter(
