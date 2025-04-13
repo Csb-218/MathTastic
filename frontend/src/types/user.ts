@@ -7,13 +7,13 @@ export type user = {
 
 export interface user_state {
   name: string
-  session: string
+  session: string | null
   email: string
   role: string
   uid: string
 }
 
-export type login = {
+export type user_login = {
   email: string
   uid: string
 }
