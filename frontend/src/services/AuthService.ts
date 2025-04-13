@@ -1,8 +1,7 @@
 import AxiosInstance from '@/config/axiosConfig'
-import type { user, login } from '@/types/user'
+import type { user, user_login } from '@/types/user'
 
 export async function SignUser(user: user, token: string) {
-  console.log(user, token)
   try {
     const response = await AxiosInstance.post('/users/register', user, {
       headers: {
@@ -15,14 +14,13 @@ export async function SignUser(user: user, token: string) {
   }
 }
 
-export async function LoginUser(user: login, token: string) {
+export async function LoginUser(user: user_login, token: string) {
   try {
     const response = await AxiosInstance.post('/users/login', user, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
     })
-
     return response
   } catch (e) {
     console.error(e)
