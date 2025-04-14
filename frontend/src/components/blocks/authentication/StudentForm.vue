@@ -6,16 +6,12 @@ import { auth } from '@/config/firebaseConfig'
 import { Button } from '@/components/ui/button'
 import { Loader2, } from 'lucide-vue-next'
 import { createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword } from 'firebase/auth'
-// services
-import { SignUser, LoginUser } from '@/services/AuthService'
 // assets
 import googleIcon from '@/assets/icons/google-icon.svg'
 // types
-import type { DecodedToken } from "@/types/miscellaneous"
+import type { DecodedIdToken } from "@/types/miscellaneous"
 // store
 import { useAuthStore } from "@/stores/authStore"
-
-import { getSessionCookie } from "@/lib/helpers"
 
 const loading = ref(false)
 const isLogin = ref(true)
@@ -26,7 +22,7 @@ const errorMessage = ref('')
 
 const { replace } = useRouter()
 const provider = new GoogleAuthProvider();
-const { init } = useAuthStore()
+const { login_user, register_user } = useAuthStore()
 
 const toggleForm = () => {
   isLogin.value = !isLogin.value
@@ -38,7 +34,6 @@ const toggleForm = () => {
 const clearError = () => {
   errorMessage.value = ''
 }
-
 
 const handleGoogle = async () => {
   try {
@@ -54,18 +49,14 @@ const handleGoogle = async () => {
         uid: userCredential.user.uid,
       }
 
-      await LoginUser(user, idToken)
-        .then(() => {
-          const sessionCookie = getSessionCookie()
-          if (sessionCookie) init(sessionCookie)
-          replace('/student')
-        })
+      await login_user(user, idToken)
+        .then(() => replace('/student'))
         .catch((error) => console.error(error))
     }
     else {
       // sign up the user
-      const name = jwtDecode<DecodedToken>(idToken).name
-      const email = jwtDecode<DecodedToken>(idToken).email
+      const name = jwtDecode<DecodedIdToken>(idToken).name
+      const email = jwtDecode<DecodedIdToken>(idToken).email
 
       // construct user object
       const user = {
@@ -74,16 +65,10 @@ const handleGoogle = async () => {
         uid: userCredential.user.uid,
         role: 'student' as const
       }
-      // save user to database
-      await SignUser(user, idToken)
-        .then(() => {
-          const sessionCookie = getSessionCookie()
-          if (sessionCookie) init(sessionCookie)
-          replace('/student')
-        })
+      await register_user(user, idToken)
+        .then(() => replace('/student'))
         .catch((error) => console.error(error))
     }
-
   } catch (error: unknown) {
     console.error(error)
   } finally {
@@ -92,7 +77,6 @@ const handleGoogle = async () => {
   }
 
 }
-
 
 const handleSubmit = async () => {
   // login flow
@@ -107,15 +91,10 @@ const handleSubmit = async () => {
         email: email.value,
         uid: userCredential.user.uid,
       }
-
       const idToken = (await userCredential.user.getIdTokenResult()).token
 
-      // login the user
-      await LoginUser(user, idToken).then(() => {
-        const sessionCookie = getSessionCookie()
-        if (sessionCookie) init(sessionCookie)
-        replace('/student')
-      })
+      await login_user(user, idToken)
+        .then(() => replace('/student'))
         .catch((error) => console.error(error))
 
     } catch (error: unknown) {
@@ -133,8 +112,6 @@ const handleSubmit = async () => {
       loading.value = false
       return
     }
-
-
   }
 
   // signup flow
@@ -152,13 +129,15 @@ const handleSubmit = async () => {
     }
 
     // sign up the user
-    await SignUser(user, idToken)
-      .then(() => {
-        const sessionCookie = getSessionCookie()
-        if (sessionCookie) init(sessionCookie)
-        replace('/student')
+    await register_user(user, idToken)
+      .then(async () => {
+        // login the user
+        await login_user(user, idToken)
+          .then(() => replace('/student'))
+          .catch((error) => console.error(error))
       })
       .catch((error) => console.error(error))
+
 
     alert("Signed up successfully!")
     console.log(userCredential)
@@ -180,6 +159,7 @@ const handleSubmit = async () => {
 
 
 }
+
 </script>
 
 <template>
@@ -232,7 +212,7 @@ const handleSubmit = async () => {
         <Button type="submit" :disabled="loading"
           className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-amber-600 hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 ">
           <Loader2 v-if="loading" class="animate-spin mr-2" />
-          {{ isLogin && !loading ? 'Sign In' : 'Create Account' }}
+          {{ isLogin ? 'Sign In' : 'Create Account' }}
         </Button>
 
 
@@ -251,7 +231,7 @@ const handleSubmit = async () => {
           class="w-full flex items-center justify-center gap-2 py-2 px-4 rounded-md border border-gray-300 shadow-sm text-sm font-medium text-gray-600 bg-white hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2">
           <Loader2 v-if="loading" class="animate-spin ml-2" />
           <img :src="googleIcon" alt="Google Icon" class="w-5 h-5" />
-          {{ !isLogin && !loading ? "Sign up with Google" : "Sign in with Google" }}
+          {{ !isLogin ? "Sign up with Google" : "Sign in with Google" }}
 
         </Button>
         <!-- Toggle Form -->

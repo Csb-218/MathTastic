@@ -22,10 +22,11 @@ const fruitIcons = [
   mushroomIcon,
 ]
 
-export function getSessionCookie(): string | undefined {
+export function getSessionCookie(): string | null {
   const cookies = document.cookie.split(';')
   const sessionCookie = cookies.find((cookie) => cookie.trim().startsWith('user'))
-  return sessionCookie
+  if (sessionCookie) return sessionCookie
+  return null
 }
 
 // create weighing objects from activity

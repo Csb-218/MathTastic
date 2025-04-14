@@ -114,7 +114,6 @@ const fetchGameState = async () => {
     error.value = 'Failed to load game objects'
     console.error(err)
   } finally {
-    console.log('Objects loaded:', availableObjects)
     loading.value = false
   }
 }

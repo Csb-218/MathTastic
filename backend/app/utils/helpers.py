@@ -1,9 +1,9 @@
 from bson import ObjectId
 from bson.errors import InvalidId
-from fastapi import Request, HTTPException, Header, Security
+from fastapi import HTTPException, Security
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from app.firebase_admin import auth_instance as auth
-from typing import Annotated
+
 
 class JWTBearer(HTTPBearer):
     """
@@ -47,7 +47,7 @@ async def verify_token(
             status_code=401,
             detail=f"Invalid token: {str(e)}",
             headers={"WWW-Authenticate": "Bearer"},
-        )
+        ) from e
 
 def validate_object_id(id_str: str, id_name: str) -> ObjectId:
     """

@@ -4,19 +4,18 @@ import { useRouter } from 'vue-router'
 import { jwtDecode } from 'jwt-decode'
 import { auth } from '@/config/firebaseConfig'
 import { createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword } from 'firebase/auth'
-// services
-import { SignUser, LoginUser } from '@/services/AuthService'
+import { Button } from '@/components/ui/button'
 // assets
 import googleIcon from '@/assets/icons/google-icon.svg'
+import { Loader2 } from 'lucide-vue-next'
 // types
-import type { DecodedToken } from "@/types/miscellaneous"
+import type { DecodedIdToken } from "@/types/miscellaneous"
 // store
 import { useAuthStore } from "@/stores/authStore"
 
-import { getSessionCookie } from "@/lib/helpers"
 
 
-
+const loading = ref(false)
 const isLogin = ref(true)
 const email = ref('')
 const password = ref('')
@@ -25,7 +24,7 @@ const errorMessage = ref('')
 
 const { replace } = useRouter()
 const provider = new GoogleAuthProvider();
-const { init } = useAuthStore()
+const { login_user, register_user } = useAuthStore()
 
 const toggleForm = () => {
   isLogin.value = !isLogin.value
@@ -40,53 +39,43 @@ const clearError = () => {
 
 const handleGoogle = async () => {
   try {
-
+    loading.value = true
     const userCredential = await signInWithPopup(auth, provider)
     const idToken = (await userCredential.user.getIdTokenResult()).token
 
     // login the user
     if (isLogin.value) {
-
+      //construct user object
       const user = {
         email: userCredential.user.email || "",
         uid: userCredential.user.uid,
       }
 
-      LoginUser(user, idToken)
-        .then(() => {
-          const sessionCookie = getSessionCookie()
-          if (sessionCookie) init(sessionCookie)
-          replace('/educator')
-        })
+      await login_user(user, idToken)
+        .then(() => replace('/educator'))
         .catch((error) => console.error(error))
     }
     else {
       // sign up the user
+      const name = jwtDecode<DecodedIdToken>(idToken).name
+      const email = jwtDecode<DecodedIdToken>(idToken).email
 
-      const name = jwtDecode<DecodedToken>(idToken).name
-      const email = jwtDecode<DecodedToken>(idToken).email
-
+      // construct user object
       const user = {
         name: name,
         email: email,
         uid: userCredential.user.uid,
-        role: 'student' as const
+        role: 'educator' as const
       }
-
-      console.log(user, idToken, userCredential)
-
-      // save user to database
-      await SignUser(user, idToken)
-        .then(() => {
-          const sessionCookie = getSessionCookie()
-          if (sessionCookie) init(sessionCookie)
-          replace('/educator')
-        })
-        .catch((err) => console.error(err))
+      await register_user(user, idToken)
+        .then(() => replace('/educator'))
+        .catch((error) => console.error(error))
     }
-
   } catch (error: unknown) {
     console.error(error)
+  } finally {
+    loading.value = false
+    return
   }
 
 }
@@ -97,27 +86,19 @@ const handleSubmit = async () => {
   if (isLogin.value) {
 
     try {
+      loading.value = true
+
       const userCredential = await signInWithEmailAndPassword(auth, email.value, password.value)
 
       const user = {
         email: email.value,
         uid: userCredential.user.uid,
       }
-
       const idToken = (await userCredential.user.getIdTokenResult()).token
 
-      console.log(user, idToken, userCredential)
-
-      // login the user
-      if (idToken) LoginUser(user, idToken)
-        .then(
-          () => {
-            const sessionCookie = getSessionCookie()
-            if (sessionCookie) init(sessionCookie)
-            replace('/educator')
-          }
-        )
-        .catch(error => console.error(error))
+      await login_user(user, idToken)
+        .then(() => replace('/educator'))
+        .catch((error) => console.error(error))
 
     } catch (error: unknown) {
 
@@ -130,14 +111,17 @@ const handleSubmit = async () => {
         errorMessage.value = 'An error occurred. Please try again.'
       }
       console.error(firebaseError)
+    } finally {
+      loading.value = false
+      return
     }
-    return
+
 
   }
 
   // signup flow
   try {
-
+    loading.value = true
     const userCredential = await createUserWithEmailAndPassword(auth, email.value, password.value)
 
     const idToken = await userCredential.user.getIdToken()
@@ -146,21 +130,22 @@ const handleSubmit = async () => {
       name: name.value,
       email: email.value,
       uid: userCredential.user.uid,
-      role: "educator" as const
+      role: 'educator' as const
     }
 
-    console.log(user, userCredential.user)
-
-    // save user to database
-    await SignUser(user, idToken)
-      .then(() => {
-        const sessionCookie = getSessionCookie()
-        if (sessionCookie) init(sessionCookie)
-        replace('/educator')
+    // sign up the user
+    await register_user(user, idToken)
+      .then(async () => {
+        // login the user
+        await login_user(user, idToken)
+          .then(() => replace('/educator'))
+          .catch((error) => console.error(error))
       })
-      .catch((err) => console.error(err))
+      .catch((error) => console.error(error))
+
 
     alert("Signed up successfully!")
+    console.log(userCredential)
   } catch (error: unknown) {
     const firebaseError = error as { code: string };
     if (firebaseError.code === 'auth/email-already-in-use') {
@@ -172,10 +157,14 @@ const handleSubmit = async () => {
     }
     console.error(firebaseError)
 
+  } finally {
+    loading.value = false
+    return
   }
 
 
 }
+
 
 
 
@@ -228,10 +217,11 @@ const handleSubmit = async () => {
 
       <div class="space-y-1 mt-4">
         <!-- Submit Button -->
-        <button type="submit"
+        <Button type="submit" :disabled="loading"
           class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ">
+          <Loader2 v-if="loading" class="animate-spin mr-2" />
           {{ isLogin ? 'Sign In' : 'Create Account' }}
-        </button>
+        </Button>
 
         <!-- Divider -->
         <div class="relative my-4">
@@ -244,11 +234,12 @@ const handleSubmit = async () => {
         </div>
 
         <!-- Login via Google -->
-        <button type="button" @click="handleGoogle"
+        <Button type="button" @click="handleGoogle" :disabled="loading"
           class="w-full flex items-center justify-center gap-2 py-2 px-4 rounded-md border border-gray-300 shadow-sm text-sm font-medium text-gray-600 bg-white hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+          <Loader2 v-if="loading" class="animate-spin mr-2" />
           <img :src="googleIcon" alt="Google Icon" class="w-5 h-5" />
           {{ !isLogin ? "Sign up with Google" : "Sign in with Google" }}
-        </button>
+        </Button>
         <!-- Toggle Form -->
         <div class="text-center mt-5">
           <button type="button" class="text-sm text-blue-600 hover:text-blue-500" @click="toggleForm">

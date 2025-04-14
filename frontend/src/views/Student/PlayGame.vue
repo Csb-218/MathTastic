@@ -78,7 +78,6 @@ onMounted(async () => {
     const game = await getGameById(gameId)
     // Set the current game
     currentGame.value = game
-    console.log("Current game: ", currentGame.value, game)
   } catch (error) {
     console.error(error)
   } finally {
