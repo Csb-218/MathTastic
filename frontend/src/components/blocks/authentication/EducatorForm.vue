@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button'
 import googleIcon from '@/assets/icons/google-icon.svg'
 import { Loader2 } from 'lucide-vue-next'
 // types
-import type { DecodedIdToken} from "@/types/miscellaneous"
+import type { DecodedIdToken } from "@/types/miscellaneous"
 // store
 import { useAuthStore } from "@/stores/authStore"
 
@@ -24,7 +24,7 @@ const errorMessage = ref('')
 
 const { replace } = useRouter()
 const provider = new GoogleAuthProvider();
-const { login_user, register_user  } = useAuthStore()
+const { login_user, register_user } = useAuthStore()
 
 const toggleForm = () => {
   isLogin.value = !isLogin.value
@@ -133,8 +133,8 @@ const handleSubmit = async () => {
       role: 'educator' as const
     }
 
-   // sign up the user
-   await register_user(user, idToken)
+    // sign up the user
+    await register_user(user, idToken)
       .then(async () => {
         // login the user
         await login_user(user, idToken)
@@ -242,9 +242,9 @@ const handleSubmit = async () => {
         </Button>
         <!-- Toggle Form -->
         <div class="text-center mt-5">
-          <Button type="button" class="text-sm text-blue-600 hover:text-blue-500" @click="toggleForm">
+          <button type="button" class="text-sm text-blue-600 hover:text-blue-500" @click="toggleForm">
             {{ isLogin ? 'Need an account? Sign up' : 'Already have an account? Sign in' }}
-          </Button>
+          </button>
         </div>
       </div>
     </form>
