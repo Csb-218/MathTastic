@@ -131,40 +131,40 @@ watch(currentGame, async () => {
 
       <!-- About the Game Section -->
       <section class="bg-white rounded-xl shadow-lg p-6">
-        <div class="flex justify-between items-start mb-4">
-          <div>
-            <h2 class="text-2xl font-bubblegum text-gray-800">About this Game</h2>
-            <p class="text-gray-600 mt-2">{{ currentGame?.description }}</p>
+        <div class="flex justify-between items-start mb-4 ">
 
-            <div class="flex gap-4 mt-4">
-              <div class="bg-amber-100 px-4 py-2 rounded-full">
-                <span class="font-bubblegum text-amber-700">
-                  Levels: {{ levels }}
-                </span>
-              </div>
-              <div class="bg-amber-100 px-4 py-2 rounded-full">
-                <span class="font-bubblegum text-amber-700">
-                  Age: {{ }} 3-7
-                </span>
-              </div>
-              <div class="bg-amber-100 px-4 py-2 rounded-full">
-                <span class="font-bubblegum text-amber-700">
-                  Points: {{ currentGame?.total_points }}
-                </span>
-              </div>
-            </div>
-          </div>
+          <h2 class="text-2xl font-bubblegum text-gray-800">About this Game</h2>
 
           <button @click="shareGame"
-            class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-bubblegum flex items-center gap-2">
+            class="bg-blue-500 hover:bg-blue-600 text-white px-3 sm:px-4 py-2 rounded-lg font-bubblegum flex items-center gap-2"
+            aria-label="Share Game">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z">
-              </path>
+                d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
             </svg>
-            Share Game
+            <span class="hidden sm:inline">Share Game</span>
           </button>
+
         </div>
+        <p class="text-gray-600 mt-2">{{ currentGame?.description }}</p>
+        <div class="flex gap-4 mt-4 w-full">
+          <div class="bg-amber-100 px-4 py-2 rounded-full">
+            <span class="font-bubblegum text-amber-700">
+              Levels: {{ levels }}
+            </span>
+          </div>
+          <div class="bg-amber-100 px-4 py-2 rounded-full">
+            <span class="font-bubblegum text-amber-700">
+              Age: {{ }} 3-7
+            </span>
+          </div>
+          <div class="bg-amber-100 px-4 py-2 rounded-full">
+            <span class="font-bubblegum text-amber-700">
+              Points: {{ currentGame?.total_points }}
+            </span>
+          </div>
+        </div>
+
       </section>
 
       <!-- Other Games Section -->
