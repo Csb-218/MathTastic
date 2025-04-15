@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Hero from "@/components/blocks/Hero/Hero.vue"
+import Hero from "@/components/blocks/Hero/HeroSection.vue"
 import NavbarStandard from '@/components/blocks/navigation/NavbarStandard.vue'
 import Footer from "../components/blocks/Footer.vue"
 import Games from "../components/blocks/Hero/GamesSection.vue"
@@ -55,34 +55,46 @@ const dummyGames: Game[] = [
   <NavbarStandard />
   <div class="min-h-screen mt-16 bg-gradient-to-r to-amber-200 from-cyan-100">
     <!-- Main Content with padding for fixed navbar -->
-    <main class="pt-20 flex flex-col items-center">
+    <main class="pt-16 md:pt-20 flex flex-col items-center">
       <!-- Hero Section -->
-      <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-16  ">
+      <section class="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-12 lg:py-16">
         <Hero />
       </section>
 
       <!-- Features Grid of Games -->
-      <section class=" bg-white py-12 sm:py-16">
+      <section class="w-full bg-white py-8 sm:py-12 lg:py-16">
         <div class="max-w-8xl mx-auto px-4 sm:px-6 lg:px-12">
           <Games :games="dummyGames" />
         </div>
       </section>
 
       <!-- FAQs -->
-      <section class="  py-12 sm:py-16">
-        <div class=" flex gap-2 max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
-          <FAQ />
-          <img :src="ChildPlay" class="w-5/12">
+      <section class="w-full py-8 sm:py-12 lg:py-16">
+        <div class="flex flex-col lg:flex-row gap-6 lg:gap-8 max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="w-full lg:w-7/12">
+            <FAQ />
+          </div>
+          <!-- Hide image on mobile, show on larger screens -->
+          <img :src="ChildPlay" class="hidden lg:block w-5/12 object-contain" alt="Child playing">
         </div>
       </section>
 
-      <section class="bg-white  py-12 sm:py-16">
-        <div class=" max-w-screen lg:w-full mx-auto px-4 sm:px-6 lg:px-12">
+      <!-- Testimonials -->
+      <section class="w-full bg-white py-8 sm:py-12 lg:py-16">
+        <div class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-12">
           <Testimonials />
         </div>
       </section>
     </main>
-
   </div>
   <Footer />
 </template>
+
+<style scoped>
+@media (max-width: 640px) {
+  .min-h-screen {
+    min-height: calc(100vh - 4rem);
+
+  }
+}
+</style>
