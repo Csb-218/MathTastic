@@ -24,7 +24,7 @@ const emailLoading = ref(false)
 const googleLoading = ref(false)
 // Remove or repurpose the existing loading ref if needed
 
-const { replace } = useRouter()
+const router = useRouter()
 const provider = new GoogleAuthProvider();
 const { login_user, register_user } = useAuthStore()
 
@@ -54,7 +54,7 @@ const handleGoogle = async () => {
       }
 
       await login_user(user, idToken)
-        .then(() => replace('/student'))
+        .then(() => router.replace('/student'))
         .catch((error) => console.error(error))
     }
     else {
@@ -70,7 +70,7 @@ const handleGoogle = async () => {
         role: 'student' as const
       }
       await register_user(user, idToken)
-        .then(() => replace('/student'))
+        .then(() => router.replace('/student'))
         .catch((error) => console.error(error))
     }
   } catch (error: unknown) {
@@ -97,7 +97,7 @@ const handleSubmit = async () => {
       const idToken = (await userCredential.user.getIdTokenResult()).token
 
       await login_user(user, idToken)
-        .then(() => replace('/student'))
+        .then(() => router.replace('/student'))
         .catch((error) => console.error(error))
 
     } catch (error: unknown) {
@@ -136,7 +136,7 @@ const handleSubmit = async () => {
       .then(async () => {
         // login the user
         await login_user(user, idToken)
-          .then(() => replace('/student'))
+          .then(() => router.replace('/student'))
           .catch((error) => console.error(error))
       })
       .catch((error) => console.error(error))
@@ -170,9 +170,11 @@ const handleSubmit = async () => {
   <div v-show="true" class="max-w-md w-full bg-white p-10 rounded-xl shadow-lg">
     <!-- Logo -->
     <div class="text-center ">
-      <h2 class="text-3xl font-bubblegum font-bold text-amber-500 ">
+      <h2 class="text-3xl font-bubblegum font-bold text-amber-500 " data-testid="form-title">
         {{ isLogin ? 'Student log in' : 'Sign up to play!' }}</h2>
-      <p class="mt-2 text-gray-600">{{ isLogin ? 'Welcome back!' : 'Join the fun!' }}</p>
+      <p class="mt-2 text-gray-600" data-testid="form-description">
+        {{ isLogin ? 'Welcome back!' : 'Join the fun!' }}
+      </p>
     </div>
 
     <!-- Form -->
