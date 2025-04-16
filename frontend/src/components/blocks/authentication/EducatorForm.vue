@@ -15,7 +15,8 @@ import { useAuthStore } from "@/stores/authStore"
 
 
 
-const loading = ref(false)
+const emailLoading = ref(false)
+const googleLoading = ref(false)
 const isLogin = ref(true)
 const email = ref('')
 const password = ref('')
@@ -39,7 +40,7 @@ const clearError = () => {
 
 const handleGoogle = async () => {
   try {
-    loading.value = true
+    googleLoading.value = true
     const userCredential = await signInWithPopup(auth, provider)
     const idToken = (await userCredential.user.getIdTokenResult()).token
 
@@ -74,19 +75,16 @@ const handleGoogle = async () => {
   } catch (error: unknown) {
     console.error(error)
   } finally {
-    loading.value = false
-    return
+    googleLoading.value = false
   }
 
 }
 
 
 const handleSubmit = async () => {
-  // login flow
   if (isLogin.value) {
-
     try {
-      loading.value = true
+      emailLoading.value = true
 
       const userCredential = await signInWithEmailAndPassword(auth, email.value, password.value)
 
@@ -112,57 +110,50 @@ const handleSubmit = async () => {
       }
       console.error(firebaseError)
     } finally {
-      loading.value = false
-      return
+      emailLoading.value = false
     }
+  } else {
+    try {
+      emailLoading.value = true
+      const userCredential = await createUserWithEmailAndPassword(auth, email.value, password.value)
+
+      const idToken = await userCredential.user.getIdToken()
+
+      const user = {
+        name: name.value,
+        email: email.value,
+        uid: userCredential.user.uid,
+        role: 'educator' as const
+      }
+
+      // sign up the user
+      await register_user(user, idToken)
+        .then(async () => {
+          // login the user
+          await login_user(user, idToken)
+            .then(() => replace('/educator'))
+            .catch((error) => console.error(error))
+        })
+        .catch((error) => console.error(error))
 
 
+      alert("Signed up successfully!")
+      console.log(userCredential)
+    } catch (error: unknown) {
+      const firebaseError = error as { code: string };
+      if (firebaseError.code === 'auth/email-already-in-use') {
+        errorMessage.value = 'Email already registered'
+      } else if (firebaseError.code === 'auth/weak-password') {
+        errorMessage.value = 'Password should be at least 6 characters'
+      } else {
+        errorMessage.value = 'An error occurred. Please try again.'
+      }
+      console.error(firebaseError)
+
+    } finally {
+      emailLoading.value = false
+    }
   }
-
-  // signup flow
-  try {
-    loading.value = true
-    const userCredential = await createUserWithEmailAndPassword(auth, email.value, password.value)
-
-    const idToken = await userCredential.user.getIdToken()
-
-    const user = {
-      name: name.value,
-      email: email.value,
-      uid: userCredential.user.uid,
-      role: 'educator' as const
-    }
-
-    // sign up the user
-    await register_user(user, idToken)
-      .then(async () => {
-        // login the user
-        await login_user(user, idToken)
-          .then(() => replace('/educator'))
-          .catch((error) => console.error(error))
-      })
-      .catch((error) => console.error(error))
-
-
-    alert("Signed up successfully!")
-    console.log(userCredential)
-  } catch (error: unknown) {
-    const firebaseError = error as { code: string };
-    if (firebaseError.code === 'auth/email-already-in-use') {
-      errorMessage.value = 'Email already registered'
-    } else if (firebaseError.code === 'auth/weak-password') {
-      errorMessage.value = 'Password should be at least 6 characters'
-    } else {
-      errorMessage.value = 'An error occurred. Please try again.'
-    }
-    console.error(firebaseError)
-
-  } finally {
-    loading.value = false
-    return
-  }
-
-
 }
 
 
@@ -217,9 +208,9 @@ const handleSubmit = async () => {
 
       <div class="space-y-1 mt-4">
         <!-- Submit Button -->
-        <Button type="submit" :disabled="loading"
-          class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ">
-          <Loader2 v-if="loading" class="animate-spin mr-2" />
+        <Button type="submit" :disabled="emailLoading || googleLoading"
+          class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+          <Loader2 v-if="emailLoading" class="animate-spin mr-2" />
           {{ isLogin ? 'Sign In' : 'Create Account' }}
         </Button>
 
@@ -234,10 +225,10 @@ const handleSubmit = async () => {
         </div>
 
         <!-- Login via Google -->
-        <Button type="button" @click="handleGoogle" :disabled="loading"
+        <Button type="button" @click="handleGoogle" :disabled="emailLoading || googleLoading"
           class="w-full flex items-center justify-center gap-2 py-2 px-4 rounded-md border border-gray-300 shadow-sm text-sm font-medium text-gray-600 bg-white hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
-          <Loader2 v-if="loading" class="animate-spin mr-2" />
-          <img :src="googleIcon" alt="Google Icon" class="w-5 h-5" />
+          <Loader2 v-if="googleLoading" class="animate-spin mr-2" />
+          <img v-else :src="googleIcon" alt="Google Icon" class="w-5 h-5" />
           {{ !isLogin ? "Sign up with Google" : "Sign in with Google" }}
         </Button>
         <!-- Toggle Form -->

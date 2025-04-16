@@ -15,16 +15,19 @@ import {
   SidebarTrigger,
 } from '@/components/ui/sidebar'
 import { useAuthStore } from "@/stores/authStore"
+import { useRouter } from "vue-router"
 
 
 const authStore = useAuthStore()
 const userRole = computed(() => authStore.role)
-console.log(userRole.value)
+const { replace } = useRouter()
 
 // Add this to check computed styles after mount
 onMounted(() => {
   const root = document.querySelector(":root")
   root?.classList.add("theme-student")
+
+  replace('/student/dashboard')
 })
 </script>
 <template>

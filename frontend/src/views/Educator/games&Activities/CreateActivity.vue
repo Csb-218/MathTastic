@@ -209,17 +209,17 @@ onMounted(() => fetchGameActivities())
 </script>
 
 <template>
-  <div class="container mx-auto px-4 py-8 my-4">
+  <div class="container mx-auto px-4 py-8 my-4 ">
     <Toaster class="border-green-400" />
 
-    <div class="flex justify-between items-center mb-8">
+    <div class="flex flex-wrap justify-between items-center mb-8">
       <h1 class="text-3xl font-bubblegum text-gray-800">Create Balance Game Activity</h1>
       <button @click="router.back()" class="text-gray-600 hover:text-gray-800">
         ← Back
       </button>
     </div>
     <!-- levels -->
-    <div class="flex gap-4 mb-8">
+    <div class="flex flex-wrap gap-4 mb-8 ">
       <div v-for="activity in gameActivities" :key="activity._id">
         <Button :variant="`${activity._id !== selectedActivity?._id ? 'outline' : 'default'}`"
           :onclick="() => handleSelectActivity(activity)">Level {{ activity.level }}</Button>

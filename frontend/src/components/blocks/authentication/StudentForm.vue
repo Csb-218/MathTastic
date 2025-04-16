@@ -13,14 +13,18 @@ import type { DecodedIdToken } from "@/types/miscellaneous"
 // store
 import { useAuthStore } from "@/stores/authStore"
 
-const loading = ref(false)
+
 const isLogin = ref(true)
 const email = ref('')
 const password = ref('')
 const name = ref('')
 const errorMessage = ref('')
 
-const { replace } = useRouter()
+const emailLoading = ref(false)
+const googleLoading = ref(false)
+// Remove or repurpose the existing loading ref if needed
+
+const router = useRouter()
 const provider = new GoogleAuthProvider();
 const { login_user, register_user } = useAuthStore()
 
@@ -37,7 +41,7 @@ const clearError = () => {
 
 const handleGoogle = async () => {
   try {
-    loading.value = true
+    googleLoading.value = true
     const userCredential = await signInWithPopup(auth, provider)
     const idToken = (await userCredential.user.getIdTokenResult()).token
 
@@ -50,7 +54,7 @@ const handleGoogle = async () => {
       }
 
       await login_user(user, idToken)
-        .then(() => replace('/student'))
+        .then(() => router.replace('/student'))
         .catch((error) => console.error(error))
     }
     else {
@@ -66,14 +70,13 @@ const handleGoogle = async () => {
         role: 'student' as const
       }
       await register_user(user, idToken)
-        .then(() => replace('/student'))
+        .then(() => router.replace('/student'))
         .catch((error) => console.error(error))
     }
   } catch (error: unknown) {
     console.error(error)
   } finally {
-    loading.value = false
-    return
+    googleLoading.value = false
   }
 
 }
@@ -83,7 +86,7 @@ const handleSubmit = async () => {
   if (isLogin.value) {
 
     try {
-      loading.value = true
+      emailLoading.value = true
 
       const userCredential = await signInWithEmailAndPassword(auth, email.value, password.value)
 
@@ -94,7 +97,7 @@ const handleSubmit = async () => {
       const idToken = (await userCredential.user.getIdTokenResult()).token
 
       await login_user(user, idToken)
-        .then(() => replace('/student'))
+        .then(() => router.replace('/student'))
         .catch((error) => console.error(error))
 
     } catch (error: unknown) {
@@ -109,14 +112,14 @@ const handleSubmit = async () => {
       }
       console.error(firebaseError)
     } finally {
-      loading.value = false
+      emailLoading.value = false
       return
     }
   }
 
   // signup flow
   try {
-    loading.value = true
+    emailLoading.value = true
     const userCredential = await createUserWithEmailAndPassword(auth, email.value, password.value)
 
     const idToken = await userCredential.user.getIdToken()
@@ -133,7 +136,7 @@ const handleSubmit = async () => {
       .then(async () => {
         // login the user
         await login_user(user, idToken)
-          .then(() => replace('/student'))
+          .then(() => router.replace('/student'))
           .catch((error) => console.error(error))
       })
       .catch((error) => console.error(error))
@@ -153,7 +156,7 @@ const handleSubmit = async () => {
     console.error(firebaseError)
 
   } finally {
-    loading.value = false
+    emailLoading.value = false
     return
   }
 
@@ -167,9 +170,11 @@ const handleSubmit = async () => {
   <div v-show="true" class="max-w-md w-full bg-white p-10 rounded-xl shadow-lg">
     <!-- Logo -->
     <div class="text-center ">
-      <h2 class="text-3xl font-bubblegum font-bold text-amber-500 ">
+      <h2 class="text-3xl font-bubblegum font-bold text-amber-500 " data-testid="form-title">
         {{ isLogin ? 'Student log in' : 'Sign up to play!' }}</h2>
-      <p class="mt-2 text-gray-600">{{ isLogin ? 'Welcome back!' : 'Join the fun!' }}</p>
+      <p class="mt-2 text-gray-600" data-testid="form-description">
+        {{ isLogin ? 'Welcome back!' : 'Join the fun!' }}
+      </p>
     </div>
 
     <!-- Form -->
@@ -209,12 +214,11 @@ const handleSubmit = async () => {
 
       <div class="space-y-1 mt-4">
         <!-- Submit Button -->
-        <Button type="submit" :disabled="loading"
-          className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-amber-600 hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 ">
-          <Loader2 v-if="loading" class="animate-spin mr-2" />
+        <Button type="submit" :disabled="emailLoading || googleLoading"
+          className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-amber-600 hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500">
+          <Loader2 v-if="emailLoading" class="animate-spin mr-2" />
           {{ isLogin ? 'Sign In' : 'Create Account' }}
         </Button>
-
 
         <!-- Divider -->
         <div class="relative my-4">
@@ -227,12 +231,11 @@ const handleSubmit = async () => {
         </div>
 
         <!-- Login via Google -->
-        <Button type="button" @click="handleGoogle" :disabled="loading"
+        <Button type="button" @click="handleGoogle" :disabled="emailLoading || googleLoading"
           class="w-full flex items-center justify-center gap-2 py-2 px-4 rounded-md border border-gray-300 shadow-sm text-sm font-medium text-gray-600 bg-white hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2">
-          <Loader2 v-if="loading" class="animate-spin ml-2" />
-          <img :src="googleIcon" alt="Google Icon" class="w-5 h-5" />
+          <Loader2 v-if="googleLoading" class="animate-spin ml-2" />
+          <img v-else :src="googleIcon" alt="Google Icon" class="w-5 h-5" />
           {{ !isLogin ? "Sign up with Google" : "Sign in with Google" }}
-
         </Button>
         <!-- Toggle Form -->
         <div class="text-center mt-5">

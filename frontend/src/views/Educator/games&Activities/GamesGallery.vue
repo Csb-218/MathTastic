@@ -2,7 +2,7 @@
 import { ref, onMounted } from 'vue'
 import type { Game } from '@/types/game'
 import { getAllGames } from '@/services/GameService'
-
+import { RouterLink } from 'vue-router';
 const games = ref<Game[]>([])
 
 onMounted(async () => {
@@ -16,10 +16,9 @@ onMounted(async () => {
   <div class="container mx-auto px-4 py-8">
     <div class="flex justify-between items-center mb-8">
       <h1 class="text-3xl font-bubblegum text-gray-800">Games Library</h1>
-      <router-link to="/educator/games/create"
-        class="bg-amber-500 text-white px-6 py-2 rounded-full hover:bg-amber-600">
+      <RouterLink to="/educator/games" class="bg-amber-500 text-white px-6 py-2 rounded-full hover:bg-amber-600">
         Create New Game
-      </router-link>
+      </RouterLink>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -32,9 +31,9 @@ onMounted(async () => {
             class="object-cover w-full h-full" />
         </div>
         <p class="text-gray-600 mb-4">{{ game.description }}</p>
-        <router-link :to="`/educator/games/${game.id}/create`" class="text-amber-500 hover:text-amber-600">
+        <RouterLink :to="`/educator/games/${game.id}/create`" class="text-amber-500 hover:text-amber-600">
           Create Activity →
-        </router-link>
+        </RouterLink>
       </div>
     </div>
   </div>
