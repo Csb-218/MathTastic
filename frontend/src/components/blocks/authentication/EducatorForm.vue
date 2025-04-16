@@ -23,7 +23,7 @@ const password = ref('')
 const name = ref('')
 const errorMessage = ref('')
 
-const { replace } = useRouter()
+const router = useRouter()
 const provider = new GoogleAuthProvider();
 const { login_user, register_user } = useAuthStore()
 
@@ -53,7 +53,7 @@ const handleGoogle = async () => {
       }
 
       await login_user(user, idToken)
-        .then(() => replace('/educator'))
+        .then(() => router.replace('/educator'))
         .catch((error) => console.error(error))
     }
     else {
@@ -69,7 +69,7 @@ const handleGoogle = async () => {
         role: 'educator' as const
       }
       await register_user(user, idToken)
-        .then(() => replace('/educator'))
+        .then(() => router.replace('/educator'))
         .catch((error) => console.error(error))
     }
   } catch (error: unknown) {
@@ -95,7 +95,7 @@ const handleSubmit = async () => {
       const idToken = (await userCredential.user.getIdTokenResult()).token
 
       await login_user(user, idToken)
-        .then(() => replace('/educator'))
+        .then(() => router.replace('/educator'))
         .catch((error) => console.error(error))
 
     } catch (error: unknown) {
@@ -131,7 +131,7 @@ const handleSubmit = async () => {
         .then(async () => {
           // login the user
           await login_user(user, idToken)
-            .then(() => replace('/educator'))
+            .then(() => router.replace('/educator'))
             .catch((error) => console.error(error))
         })
         .catch((error) => console.error(error))
@@ -165,9 +165,11 @@ const handleSubmit = async () => {
   <div v-show="true" class="max-w-md w-full bg-white p-10 rounded-xl shadow-lg">
     <!-- Logo -->
     <div class="text-center ">
-      <h2 class="text-3xl font-bubblegum font-bold text-blue-500 ">
+      <h2 class="text-3xl font-bubblegum font-bold text-blue-500 " data-test-id=form-title>
         {{ isLogin ? 'Welcome Back, Educator!' : 'Join as an Educator' }}</h2>
-      <p class="mt-2 text-gray-600">{{ isLogin ? 'Continue your teaching journey' : 'Start empowering students today' }}
+      <p class="mt-2 text-gray-600" data-test-id="form-description">
+        {{ isLogin ? 'Continue your teaching journey'
+          : 'Start empowering students today' }}
       </p>
     </div>
 
@@ -233,7 +235,8 @@ const handleSubmit = async () => {
         </Button>
         <!-- Toggle Form -->
         <div class="text-center mt-5">
-          <button type="button" class="text-sm text-blue-600 hover:text-blue-500" @click="toggleForm">
+          <button type="button" class="text-sm text-blue-600 hover:text-blue-500" @click="toggleForm"
+            data-test-id="toggle-form">
             {{ isLogin ? 'Need an account? Sign up' : 'Already have an account? Sign in' }}
           </button>
         </div>

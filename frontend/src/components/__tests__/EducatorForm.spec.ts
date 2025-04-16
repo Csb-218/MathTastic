@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
-import StudentForm from '@/components/blocks/authentication/StudentForm.vue'
+import EducatorForm from '@/components/blocks/authentication/EducatorForm.vue'
 import { createTestingPinia } from '@pinia/testing'
 
-describe('StudentForm', () => {
+describe('EducatorForm', () => {
   const FormTitleSelector = '[data-test-id=form-title]'
   const FormDescriptionSelector = '[data-test-id=form-description]'
   const EmailInputSelector = '#email'
@@ -16,7 +16,7 @@ describe('StudentForm', () => {
 
   beforeEach(() => {
     // Create a fresh wrapper for each test with Pinia store
-    wrapper = mount(StudentForm, {
+    wrapper = mount(EducatorForm, {
       global: {
         plugins: [
           createTestingPinia({
@@ -38,8 +38,8 @@ describe('StudentForm', () => {
   })
 
   it('should display login form by default', () => {
-    expect(wrapper.find(FormTitleSelector).text()).toBe('Student log in')
-    expect(wrapper.find(FormDescriptionSelector).text()).toBe('Welcome back!')
+    expect(wrapper.find(FormTitleSelector).text()).toBe('Welcome Back, Educator!')
+    expect(wrapper.find(FormDescriptionSelector).text()).toBe('Continue your teaching journey')
     expect(wrapper.find(NameInputSelector).exists()).toBe(false)
   })
 
