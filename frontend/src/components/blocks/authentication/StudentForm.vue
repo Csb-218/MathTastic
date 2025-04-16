@@ -170,40 +170,41 @@ const handleSubmit = async () => {
   <div v-show="true" class="max-w-md w-full bg-white p-10 rounded-xl shadow-lg">
     <!-- Logo -->
     <div class="text-center ">
-      <h2 class="text-3xl font-bubblegum font-bold text-amber-500 " data-testid="form-title">
+      <h2 class="text-3xl font-bubblegum font-bold text-amber-500 " data-test-id="form-title">
         {{ isLogin ? 'Student log in' : 'Sign up to play!' }}</h2>
-      <p class="mt-2 text-gray-600" data-testid="form-description">
+      <p class="mt-2 text-gray-600" data-test-id="form-description">
         {{ isLogin ? 'Welcome back!' : 'Join the fun!' }}
       </p>
     </div>
 
     <!-- Form -->
-    <form class="  " @submit.prevent="handleSubmit">
+    <form @submit.prevent="handleSubmit">
 
       <div class="space-y-4 mt-5">
         <div v-if="!isLogin" key="name" class="">
           <label for="name" class="block text-sm font-medium text-gray-700">Name</label>
           <input id="name" v-model="name" type="text" required
-            class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500" />
+            class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 " />
         </div>
 
         <!-- Email Field -->
         <div key="email" class="">
           <label for="email" class="block text-sm font-medium text-gray-700">Email address</label>
           <input id="email" v-model="email" type="email" required @focus="clearError"
-            class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500" />
+            class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 " />
         </div>
 
         <!-- Password Field -->
         <div key="password" class="">
           <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
           <input id="password" v-model="password" type="password" required @focus="clearError"
-            class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500" />
+            class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 " />
         </div>
         <!-- Registration Name Field -->
 
         <!-- Error Message -->
-        <p v-if="errorMessage" key="error" class="mt-2 text-sm text-red-600 transition-all text-center duration-300">
+        <p v-if="errorMessage" key="error" class="mt-2 text-sm text-red-600 transition-all text-center duration-300"
+          data-test-id="error-message">
           {{ errorMessage }}
         </p>
       </div>
@@ -239,7 +240,8 @@ const handleSubmit = async () => {
         </Button>
         <!-- Toggle Form -->
         <div class="text-center mt-5">
-          <button type="button" class="text-sm text-amber-600 hover:text-amber-500" @click="toggleForm">
+          <button type="button" class="text-sm text-amber-600 hover:text-amber-500" data-test-id="toggle-form"
+            @click="toggleForm">
             {{ isLogin ? 'Need an account? Sign up' : 'Already have an account? Sign in' }}
           </button>
         </div>
