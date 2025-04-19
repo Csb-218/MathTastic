@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { RouterView } from 'vue-router'
 import { onMounted } from 'vue'
-import { getSessionCookie } from '@/lib/helpers'
+import { getSessionCookie, getFireBaseCookie } from '@/lib/helpers'
 
 
 // check authentication
@@ -14,7 +14,12 @@ onMounted(async () => {
   const sessionCookie = getSessionCookie()
   if (sessionCookie) {
     // Cookie exists, initialize auth state
-    await init(sessionCookie)
+    const firebaseCookie = getFireBaseCookie()
+    if (firebaseCookie) {
+      await init(sessionCookie, firebaseCookie)
+      return
+    }
+    await init(sessionCookie, null)
   } else {
     console.log('No session cookie found')
   }
