@@ -77,34 +77,32 @@ async def register_user(user: UserCreate,
 async def login_user(
     user_data: UserLogin,
     verified_token: dict = Depends(verify_token)  # Get the verified token data
-) :
+):
+    # token_data contains the decoded Firebase token
+    if verified_token['token_data']['user_id'] != user_data.uid:
+        raise HTTPException(
+            status_code=401,
+            detail="Token UID does not match provided UID"
+        )
+    
+    # Find user in database
+    user = await User.find_one({
+        "email": user_data.email,
+        "uid": user_data.uid  # Add this check for extra security
+    })
+    
+    if user is None:
+        raise HTTPException(
+            status_code=404,
+            detail="User not found",
+        )
+    
     try:
-
-        # token_data contains the decoded Firebase token
-        if verified_token['token_data']['user_id'] != user_data.uid:
-            raise HTTPException(
-                status_code=401,
-                detail="Token UID does not match provided UID"
-            )
-        
-        # Find user in database
-        user = await User.find_one({
-            "email": user_data.email,
-            "uid": user_data.uid  # Add this check for extra security
-        })
-        
-        if not user:
-            raise HTTPException(
-                status_code=404,
-                detail="User not found"
-            )
-        
         payload = {
             "exp": datetime.now() + timedelta(seconds=3600),
             "iat": datetime.now(),
             "sub": serialize_user_for_cookie(user)
         }
-
 
         token = jwt.encode(
             payload,
@@ -113,13 +111,12 @@ async def login_user(
         )
         
         return {"message": "Login successful", "token": token}
-        
-
+    
     except Exception as e:
-        print (e)
+        print("error:", e)
         raise HTTPException(
-            status_code=401,
-            detail=str(e)
+            status_code=500,
+            detail="Error generating authentication token"
         ) from e
 
 # check user authentication

@@ -14,7 +14,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from '@/components/ui/sidebar'
-import { useAuthStore } from "@/stores/authStore"
+import { useAuthStore } from "@/stores/Authentication/authStore"
 import { useRouter } from "vue-router"
 
 

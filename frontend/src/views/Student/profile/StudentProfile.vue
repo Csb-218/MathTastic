@@ -10,9 +10,9 @@
       <ErrorBoundary>
         <!-- Profile Card -->
         <div class="bg-white p-6 rounded-lg shadow-md ">
-          <div class="flex items-center gap-x-3.5 ">
-            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR54iRKN5gGKCLLrjfUveGRhmhjv4r219tmqQ&s"
-              alt="Profile Picture" class="w-24 h-24 rounded-sm mr-4 object-cover p-2 border-2 border-amber-400" />
+          <div class="flex flex-wrap items-center gap-x-3.5 ">
+            <img :src="profile.picture" alt="Profile Picture"
+              class="w-24 h-24 rounded-sm mr-4 object-cover p-2 border-2 border-amber-400" />
             <div class="w-7/12 ">
               <p class="text-4xl font-bubblegum">{{ profile.name }}</p>
               <p class="text-gray-600 text-2xl font-bubblegum">{{ profile.age }} years old</p>
@@ -21,7 +21,7 @@
             <div>
               <div class="relative">
                 <img class="w-24 h-24" :src="star" alt="info_orange" />
-                <p class="text-white text-xl absolute font-bubblegum top-10 left-7">1200</p>
+                <p class="text-white text-xl absolute font-bubblegum top-10 left-1/3 ">1200</p>
               </div>
               <p class="font-bubblegum ">Points earned </p>
             </div>
@@ -136,12 +136,15 @@ import { ref } from 'vue';
 // import info_orange from "@/assets/icons/Info_orange.png"
 import star from "@/assets/icons/star.svg"
 import ErrorBoundary from '@/components/blocks/ErrorBoundary.vue';
+import { useAuthStore } from "@/stores/Authentication/authStore"
 
+const authStore = useAuthStore()
 // Profile Data
 const profile = ref({
-  name: 'Alex',
+  name: authStore.get_user.name,
   age: 10,
   grade: 5,
+  picture: authStore.get_user.picture || "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR54iRKN5gGKCLLrjfUveGRhmhjv4r219tmqQ&s",
 });
 
 const skillData = ref({

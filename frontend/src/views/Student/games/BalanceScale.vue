@@ -10,7 +10,7 @@ import { db } from '@/config/firebaseConfig'
 import { updateProgress, resetProgress } from '@/services/FireStoreService'
 //store
 import { useBalanceScaleStore } from '@/stores/Gameplay/BalanceScale/balanceScale'
-import { useAuthStore } from '@/stores/authStore'
+import { useAuthStore } from '@/stores/Authentication/authStore'
 // assets
 import { Minimize } from 'lucide-vue-next';
 import OverLay from '@/components/blocks/game/OverLay.vue'

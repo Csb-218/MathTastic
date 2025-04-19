@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useAuthStore } from '@/stores/authStore'
+import { useAuthStore } from '@/stores/Authentication/authStore'
 import { useRouter } from 'vue-router'
 import { ref } from 'vue'
 import calculator_logo from "@/assets/icons/calculator_logo.png"
@@ -15,7 +15,7 @@ const authStore = useAuthStore()
 
 const handleLogout = () => {
   authStore.logout()
-  router.push('/login')
+  router.replace('/login')
 }
 </script>
 

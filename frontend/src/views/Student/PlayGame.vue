@@ -10,7 +10,7 @@ import {
 } from '@/services/FireStoreService'
 import type { Game } from '@/types/game'
 import type { game_progress, progress_object } from '@/types/progress'
-import { useAuthStore } from "@/stores/authStore"
+import { useAuthStore } from "@/stores/Authentication/authStore"
 
 const loading = ref(false)
 const { params } = useRoute();
