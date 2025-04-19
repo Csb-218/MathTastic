@@ -1,4 +1,4 @@
-# frontend2
+# Frontend 
 
 This template should help get you started developing with Vue 3 in Vite.
 
@@ -13,6 +13,30 @@ TypeScript cannot handle type information for `.vue` imports by default, so we r
 ## Customize configuration
 
 See [Vite Configuration Reference](https://vite.dev/config/).
+
+## Environment Variables
+
+To run this project, you will need to add the following environment variables to your .env file
+
+Firebase variables
+
+`VITE_apiKey`
+
+`VITE_authDomain`
+
+`VITE_projectId`
+
+`VITE_storageBucket`
+
+`VITE_messagingSenderId`
+
+`VITE_appId`
+
+`VITE_measurementId`
+
+Backend Host URL
+
+`VITE_BACKEND_HOST`
 
 ## Project Setup
 
