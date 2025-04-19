@@ -13,6 +13,7 @@ export interface user_state {
   email: string
   role: string
   uid: string
+  picture: string | null
 }
 
 export type user_login = {

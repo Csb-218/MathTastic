@@ -6,6 +6,9 @@ import { LoginUser, SignUser } from '@/services/AuthService'
 import type { user_login, user_state, user } from '@/types/user'
 import type { DecodedToken } from '@/types/miscellaneous'
 
+interface DecodedIdToken {
+  picture: string
+}
 export const useAuthStore = defineStore('auth', {
   state: (): user_state => {
     return {
@@ -14,6 +17,7 @@ export const useAuthStore = defineStore('auth', {
       email: '',
       role: '',
       uid: '',
+      picture: null,
     }
   },
   getters: {
@@ -37,14 +41,16 @@ export const useAuthStore = defineStore('auth', {
     async login_user(user: user_login, idToken: string) {
       const response = await LoginUser(user, idToken)
       const token = response?.data.token
-      await this.init(token)
+      // storing firebase token in cookie
+      document.cookie = `firebase_cookie=${idToken}; path=/; max-age=3600`
+      await this.init(token, idToken)
     },
 
     async register_user(user_register: user, idToken: string): Promise<void> {
       await SignUser(user_register, idToken)
     },
 
-    async init(token: string): Promise<void> {
+    async init(token: string, idToken: string | null): Promise<void> {
       const { sub, exp } = jwtDecode<DecodedToken>(token)
 
       // Check if the token is expired
@@ -53,8 +59,15 @@ export const useAuthStore = defineStore('auth', {
         this.logout()
         return
       }
+
+      if (idToken) {
+        const { picture } = jwtDecode<DecodedIdToken>(idToken)
+        this.picture = picture
+      }
+
       // Set the session cookie with age expiration
       document.cookie = `user_cookie=${token}; path=/; max-age=3600` // 1 hour expiration
+
       // Set the user data
       this.session = token
       this.name = sub.name
