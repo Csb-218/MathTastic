@@ -1,18 +1,25 @@
+
 # Learning Journey
 
 This document outlines the key technologies and concepts learned while building MathTastic.
 
 ## Frontend Technologies
+### ![Vue_logo](https://avatars.githubusercontent.com/u/6128107?s=50&v=4) VUE
 
-### Vue.js
+##### Learnings
 - Component-based architecture
-- Composition API for better code organization
+- Composition API 
 - Vue Router for navigation
+- Props passing
+- Reactive elements
+- Side-effect rendering
 - Custom hooks and composables
-- TypeScript integration
 - Template syntax and reactivity
 
-### Pinia
+### ![Pinia_logo](https://avatars.githubusercontent.com/u/82210087?s=50&v=4)  Pinia
+
+
+##### Learnings
 - State management
 - Actions and mutations
 - Store modules
@@ -20,9 +27,10 @@ This document outlines the key technologies and concepts learned while building 
 - State persistence
 - TypeScript support
 
-## Backend Technologies
+## Backend Technologies 
+### ![logo](https://avatars.githubusercontent.com/u/156354296?s=50&v=4) FastAPI
 
-### FastAPI
+##### Learnings
 - REST API development
 - Async/await patterns
 - Dependency injection
@@ -34,11 +42,11 @@ This document outlines the key technologies and concepts learned while building 
 
 ## Database & Authentication
 
-### MongoDB
+### ![mongo_logo](https://avatars.githubusercontent.com/u/45120?s=48&v=4) MongoDB
 - Beanie ODM integration
 - Async database operations
 
-### Firebase & Firestore
+### ![logo](https://avatars.githubusercontent.com/u/1335026?s=50&v=4)   Firebase & Firestore 
 - User authentication
 - Social sign-in (Google)
 - Real-time data synchronization
@@ -47,7 +55,7 @@ This document outlines the key technologies and concepts learned while building 
 
 ### Development Workflow
 - Environment configuration
-- Package management (npm, pip)
+- Package management (npm, pip, uv)
 - Testing (Vitest, Pytest)
 - Error monitoring
 
