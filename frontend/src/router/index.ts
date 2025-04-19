@@ -9,7 +9,7 @@ import EducatorDashboard from '@/components/blocks/dashboards/EducatorDashboard.
 
 import StudentHome from '@/views/Student/StudentHome.vue'
 import StudentProfile from '@/views/Student/profile/StudentProfile.vue'
-
+import NotFound from '@/views/NotFound.vue'
 // store
 import { useAuthStore } from '@/stores/Authentication/authStore'
 
@@ -104,6 +104,11 @@ const router = createRouter({
       name: 'admin',
       component: AdminView,
       meta: { requiresAuth: true, role: 'admin' },
+    },
+    {
+      path: '/:pathMatch(.*)*',
+      name: 'not-found',
+      component: NotFound,
     },
   ],
 })
