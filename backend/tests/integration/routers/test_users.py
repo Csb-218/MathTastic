@@ -16,14 +16,14 @@ async def test_get_users_success(mocker):
             email="test1@example.com",
             uid="test-uid-1",
             role=UserRole.STUDENT,
-            created_at=datetime.utcnow()
+            created_at=datetime.now()
         ),
         User(
             name="Test User 2",
             email="test2@example.com",
             uid="test-uid-2",
             role=UserRole.EDUCATOR,
-            created_at=datetime.utcnow()
+            created_at=datetime.now()
         )
     ]
     
@@ -115,7 +115,7 @@ async def test_login_user_success(mocker):
         email="xyz@example.com",
         uid="test-uid-1",
         role=UserRole.STUDENT,
-        created_at=datetime.utcnow()
+        created_at=datetime.now()
     )
 
     token_data = {"uid": "test-uid-1"}
