@@ -61,7 +61,7 @@ async def get_game(game_id: str = Path(..., description="The ID of the game to g
             id=str(game.id),
             title=game.title,
             description=game.description,
-            creator=str(game.creator.id),
+            creator=str(game.creator),
             age_range=game.age_range,
             difficulty=game.difficulty,
             activities=list(game.activities),
