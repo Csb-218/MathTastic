@@ -24,8 +24,21 @@ const fruitIcons = [
 
 export function getSessionCookie(): string | null {
   const cookies = document.cookie.split(';')
-  const sessionCookie = cookies.find((cookie) => cookie.trim().startsWith('user'))
-  if (sessionCookie) return sessionCookie
+  const sessionCookie = cookies.find((cookie) => cookie.trim().startsWith('user_cookie='))
+  if (sessionCookie) {
+    const cookieValue = sessionCookie.split('=')[1]
+    return decodeURIComponent(cookieValue)
+  }
+  return null
+}
+
+export function getFireBaseCookie(): string | null {
+  const cookies = document.cookie.split(';')
+  const sessionCookie = cookies.find((cookie) => cookie.trim().startsWith('firebase_cookie='))
+  if (sessionCookie) {
+    const cookieValue = sessionCookie.split('=')[1]
+    return decodeURIComponent(cookieValue)
+  }
   return null
 }
 
