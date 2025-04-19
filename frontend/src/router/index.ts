@@ -3,7 +3,7 @@ import HomeView from '../views/HomeView.vue'
 import AdminView from '@/views/AdminView.vue'
 import AllGames from '@/views/AllGames.vue'
 import PlayGame from '@/views/Student/PlayGame.vue'
-import AuthenticationForm from '@/views/Authentication/AuthenticationForm.vue'
+import AuthenticationForm from '@/views/Authentication/AuthenticationView.vue'
 import EducatorView from '@/views/Educator/EducatorHome.vue'
 import EducatorDashboard from '@/components/blocks/dashboards/EducatorDashboard.vue'
 
@@ -11,7 +11,7 @@ import StudentHome from '@/views/Student/StudentHome.vue'
 import StudentProfile from '@/views/Student/profile/StudentProfile.vue'
 
 // store
-import { useAuthStore } from '@/stores/authStore'
+import { useAuthStore } from '@/stores/Authentication/authStore'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),

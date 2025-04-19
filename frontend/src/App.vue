@@ -5,7 +5,7 @@ import { getSessionCookie } from '@/lib/helpers'
 
 
 // check authentication
-import { useAuthStore } from "@/stores/authStore"
+import { useAuthStore } from "@/stores/Authentication/authStore"
 
 const { init } = useAuthStore()
 
