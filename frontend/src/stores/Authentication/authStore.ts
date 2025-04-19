@@ -34,45 +34,33 @@ export const useAuthStore = defineStore('auth', {
     },
   },
   actions: {
-    async login_user(user: user_login, idToken: string): Promise<void> {
-      try {
-        const response = await LoginUser(user, idToken)
-        const token = response?.data.token
-        await this.init(token)
-      } catch (error) {
-        console.error('Login failed:', error)
-      }
+    async login_user(user: user_login, idToken: string) {
+      const response = await LoginUser(user, idToken)
+      const token = response?.data.token
+      await this.init(token)
     },
 
     async register_user(user_register: user, idToken: string): Promise<void> {
-      try {
-        await SignUser(user_register, idToken)
-      } catch (error) {
-        console.error('Login failed:', error)
-      }
+      await SignUser(user_register, idToken)
     },
 
     async init(token: string): Promise<void> {
-      try {
-        const { sub, exp } = jwtDecode<DecodedToken>(token)
+      const { sub, exp } = jwtDecode<DecodedToken>(token)
 
-        // Check if the token is expired
-        if (exp < Date.now() / 1000) {
-          console.error('Token expired')
-          this.logout()
-          return
-        }
-        // Set the session cookie with age expiration
-        document.cookie = `user_cookie=${token}; path=/; max-age=3600` // 1 hour expiration
-        // Set the user data
-        this.session = token
-        this.name = sub.name
-        this.email = sub.email
-        this.role = sub.role
-        this.uid = sub.uid
-      } catch (error) {
-        console.error('Failed to initialize session:', error)
+      // Check if the token is expired
+      if (exp < Date.now() / 1000) {
+        console.error('Token expired')
+        this.logout()
+        return
       }
+      // Set the session cookie with age expiration
+      document.cookie = `user_cookie=${token}; path=/; max-age=3600` // 1 hour expiration
+      // Set the user data
+      this.session = token
+      this.name = sub.name
+      this.email = sub.email
+      this.role = sub.role
+      this.uid = sub.uid
     },
 
     logout() {
