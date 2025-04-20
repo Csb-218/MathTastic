@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { RouterLink } from 'vue-router';
 
 </script>
 <template>
@@ -10,11 +11,13 @@
       <p class="text-lg py-10 sm:text-xl text-gray-600 mb-6 sm:mb-8">
         Where Math Meets Play: Help Kids Master Addition Through Interactive Balance Challenges!
       </p>
-      <button
-        class=" max-w-md group bg-amber-500 hover:bg-amber-600 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-full text-lg font-semibold transition-all transform hover:scale-105 cursor-pointer">
-        👉 Start Learning Free!
-        <span class="inline-block transition-transform group-hover:translate-x-2 ml-2">→</span>
-      </button>
+      <RouterLink to="/login">
+        <button
+          class=" max-w-md group bg-amber-500 hover:bg-amber-600 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-full text-lg font-semibold transition-all transform hover:scale-105 cursor-pointer">
+          👉 Start Learning Free!
+          <span class="inline-block transition-transform group-hover:translate-x-2 ml-2">→</span>
+        </button>
+      </RouterLink>
     </div>
     <div class="relative mt-8 lg:mt-0">
       <div class="aspect-w-4 aspect-h-3  rounded-2xl  ">
