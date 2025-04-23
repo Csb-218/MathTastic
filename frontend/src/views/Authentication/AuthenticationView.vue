@@ -28,15 +28,15 @@ watch(
 
     <!-- Role Selector -->
     <div class="flex gap-2 p-1 bg-gray-100 rounded-lg mb-6">
-      <Button :disabled="authPageStore.emailLoading || authPageStore.googleLoading"
+      <!-- <Button :disabled="authPageStore.emailLoading || authPageStore.googleLoading"
         @click="authPageStore.setStudent(true)" :variant="authPageStore.isStudent ? 'default' : 'ghost'">
         Student
-      </Button>
-      <Button :class="!authPageStore.isStudent && 'bg-blue-500 text-white hover:bg-blue-400'"
+      </Button> -->
+      <!-- <Button :class="!authPageStore.isStudent && 'bg-blue-500 text-white hover:bg-blue-400'"
         :disabled="authPageStore.emailLoading || authPageStore.googleLoading" @click="authPageStore.setStudent(false)"
         :variant="!authPageStore.isStudent ? 'default' : 'ghost'">
         Educator
-      </Button>
+      </Button> -->
     </div>
 
     <!-- Render appropriate form based on role -->
