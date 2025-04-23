@@ -35,7 +35,7 @@ export function useAuth() {
   }
 
   const redirectUser = () => {
-    const path = authPageStore.student ? '/student' : '/educator'
+    const path = authPageStore.student ? '/games' : '/educator'
     router.replace(path)
   }
 
