@@ -40,21 +40,21 @@ const toggleFaq = (index: number) => {
   <section class="py-12 px-4 sm:px-6 lg:px-8 w-full">
     <div class="max-w-3xl mx-auto w-full">
       <h2 class="text-3xl font-bold  py-2 text-gray-900">Know More About MathTastic</h2>
-      
+
       <div class="space-y-4 w-full mt-8 ">
-        <div 
-          v-for="(faq, index) in faqs" 
-          :key="faq.id" 
+        <div
+          v-for="(faq, index) in faqs"
+          :key="faq.id"
           class="w-2xl bg-white rounded-lg shadow-sm border border-gray-200"
         >
-          <button 
+          <button
             @click="toggleFaq(index)"
             class="w-full px-6 py-4 text-left focus:outline-none text-gray-900 flex items-center justify-between"
             :class="{ 'bg-amber-400 text-white': activeIndex === index }"
           >
             <h3 class="text-lg font-semibold  pr-4">{{ faq.question }}</h3>
-            <span 
-              class="transform transition-transform duration-200 ease-in-out" 
+            <span
+              class="transform transition-transform duration-200 ease-in-out"
               :class="{ 'rotate-180': activeIndex === index }"
             >
               <svg class="h-6 w-6 text-gray-500 flex-shrink-0" :class="{ 'text-white': activeIndex === index }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -62,12 +62,20 @@ const toggleFaq = (index: number) => {
               </svg>
             </span>
           </button>
-          <div 
-            v-show="activeIndex === index"
-            class="px-6 pb-4"
+          <transition
+            name="expand"
+            @enter="el => (el as HTMLElement).style.maxHeight = (el as HTMLElement).scrollHeight + 'px'"
+            @leave="el => (el as HTMLElement).style.maxHeight = '0px'"
           >
-            <p class="text-gray-600">{{ faq.answer }}</p>
-          </div>
+            <div
+              v-show="activeIndex === index"
+              class="answer-content overflow-hidden"
+            >
+              <div class="px-6 pb-4">
+                <p class="text-gray-600">{{ faq.answer }}</p>
+              </div>
+            </div>
+          </transition>
         </div>
       </div>
     </div>
@@ -77,5 +85,24 @@ const toggleFaq = (index: number) => {
 <style scoped>
 .transform {
   transition: transform 0.2s ease;
+}
+
+.answer-content {
+  max-height: 0;
+  transition: max-height 0.3s cubic-bezier(0, 1, 0, 1);
+}
+
+.expand-enter-active {
+  transition: all 0.3s cubic-bezier(1, 0, 1, 0);
+}
+
+.expand-leave-active {
+  transition: all 0.3s cubic-bezier(0, 1, 0, 1);
+}
+
+.expand-enter-from,
+.expand-leave-to {
+  opacity: 0;
+  transform: translateY(-8px);
 }
 </style>
